@@ -1,6 +1,5 @@
 Career Studio
 
-
 ## Technologies
 
 - Vite
@@ -14,3 +13,4 @@ Career Studio
 ```bash
 npm install
 npm run dev
+```
