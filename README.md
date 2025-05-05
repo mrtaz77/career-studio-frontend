@@ -1,2 +1,11 @@
 # career-studio-frontend
 Frontend of Career Studio
+What technologies are used for this project?
+
+This project is built with:
+
+--Vite
+--TypeScript
+--React
+--shadcn-ui
+--Tailwind CSS
