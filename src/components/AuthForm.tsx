@@ -3,32 +3,57 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useAuth } from "@/context/AuthContext";
+import { useNavigate } from "react-router-dom";
+import { Loader2 } from "lucide-react";
 
 interface AuthFormProps {
   mode: "login" | "signup";
   onToggleMode: () => void;
+  onSuccess?: () => void;
 }
 
-const AuthForm = ({ mode, onToggleMode }: AuthFormProps) => {
+const AuthForm = ({ mode, onToggleMode, onSuccess }: AuthFormProps) => {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
     name: ""
   });
-
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { login, signup } = useAuth();
+  const navigate = useNavigate();
+ //const dispatch = useDispatch();
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Form submitted with:", formData);
-    // In a real app, you'd connect this to your authentication system
+    setIsSubmitting(true);
+    
+    try {
+      if (mode === "login") {
+        await login(formData.email, formData.password);
+        navigate("/dashboard");
+      } else {
+        await signup(formData.email, formData.password, formData.name);
+        
+        onToggleMode(); // Switch to login after successful signup
+      }
+      if (onSuccess) {
+        onSuccess();
+       
+      }
+    } catch (error) {
+      console.error("Authentication error:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
-    <div className="w-full max-w-md mx-auto bg-white p-8 rounded-lg shadow-md border border-gray-100">
+    <div className="w-full max-w-md mx-auto bg-white p-8 rounded-lg">
       <h2 className="text-2xl font-bold text-center mb-6">
         {mode === "login" ? "Log in to your account" : "Create your account"}
       </h2>
@@ -46,6 +71,7 @@ const AuthForm = ({ mode, onToggleMode }: AuthFormProps) => {
               onChange={handleChange}
               required
               className="w-full"
+              disabled={isSubmitting}
             />
           </div>
         )}
@@ -61,6 +87,7 @@ const AuthForm = ({ mode, onToggleMode }: AuthFormProps) => {
             onChange={handleChange}
             required
             className="w-full"
+            disabled={isSubmitting}
           />
         </div>
         
@@ -75,6 +102,7 @@ const AuthForm = ({ mode, onToggleMode }: AuthFormProps) => {
             onChange={handleChange}
             required
             className="w-full"
+            disabled={isSubmitting}
           />
         </div>
 
@@ -86,8 +114,19 @@ const AuthForm = ({ mode, onToggleMode }: AuthFormProps) => {
           </div>
         )}
         
-        <Button type="submit" className="w-full bg-jobathon-600 hover:bg-jobathon-700 py-6">
-          {mode === "login" ? "Sign in" : "Sign up"}
+        <Button 
+          type="submit" 
+          className="w-full bg-jobathon-600 hover:bg-jobathon-700 py-6"
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              {mode === "login" ? "Signing in..." : "Signing up..."}
+            </>
+          ) : (
+            mode === "login" ? "Sign in" : "Sign up"
+          )}
         </Button>
       </form>
       
@@ -97,6 +136,7 @@ const AuthForm = ({ mode, onToggleMode }: AuthFormProps) => {
           <button
             onClick={onToggleMode}
             className="ml-1 text-jobathon-600 hover:underline focus:outline-none"
+            disabled={isSubmitting}
           >
             {mode === "login" ? "Sign up" : "Sign in"}
           </button>
@@ -114,7 +154,7 @@ const AuthForm = ({ mode, onToggleMode }: AuthFormProps) => {
         </div>
 
         <div className="mt-6 grid grid-cols-2 gap-3">
-          <Button variant="outline" className="w-full">
+          <Button variant="outline" className="w-full" disabled={isSubmitting}>
             <svg className="h-5 w-5 mr-2" viewBox="0 0 24 24">
               <path
                 d="M12.0003 4.75C13.7703 4.75 15.3553 5.36002 16.6053 6.54998L20.0303 3.125C17.9502 1.19 15.2353 0 12.0003 0C7.31028 0 3.25527 2.69 1.28027 6.60998L5.27028 9.70498C6.21525 6.86002 8.87028 4.75 12.0003 4.75Z"
@@ -135,7 +175,7 @@ const AuthForm = ({ mode, onToggleMode }: AuthFormProps) => {
             </svg>
             Google
           </Button>
-          <Button variant="outline" className="w-full">
+          <Button variant="outline" className="w-full" disabled={isSubmitting}>
             <svg className="h-5 w-5 mr-2" viewBox="0 0 24 24">
               <path
                 d="M22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 16.9913 5.65686 21.1283 10.4375 21.8785V14.8906H7.89844V12H10.4375V9.79688C10.4375 7.29063 11.9304 5.90625 14.2146 5.90625C15.3087 5.90625 16.4531 6.10156 16.4531 6.10156V8.5625H15.1921C13.9499 8.5625 13.5625 9.33334 13.5625 10.1242V12H16.3359L15.8926 14.8906H13.5625V21.8785C18.3431 21.1283 22 16.9913 22 12Z"
