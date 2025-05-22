@@ -1,12 +1,25 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { 
+
   createUserWithEmailAndPassword, 
+
   signInWithEmailAndPassword, 
+
   signOut, 
+
   onAuthStateChanged, 
+
   User as FirebaseUser,
-  updateProfile
+
+  updateProfile,
+
+  GoogleAuthProvider,
+
+  FacebookAuthProvider,
+
+  signInWithPopup
+
 } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { useToast } from "@/components/ui/use-toast";
@@ -18,6 +31,9 @@ interface AuthContextType {
   loading: boolean;
   signup: (email: string, password: string, name: string) => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
+   loginWithGoogle: () => Promise<void>;
+
+  loginWithFacebook: () => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -97,6 +113,93 @@ const dispatch = useDispatch();
     }
   };
 
+
+
+   // Google login function
+
+  const loginWithGoogle = async () => {
+
+    try {
+
+      const provider = new GoogleAuthProvider();
+
+      await signInWithPopup(auth, provider);
+
+      toast({
+
+        title: "Welcome!",
+
+        description: "You've successfully signed in with Google",
+
+        variant: "default",
+
+      });
+
+      return Promise.resolve();
+
+    } catch (error) {
+
+      const errorMessage = (error as Error).message;
+
+      toast({
+
+        title: "Authentication failed",
+
+        description: errorMessage,
+
+        variant: "destructive",
+
+      });
+
+      return Promise.reject(error);
+
+    }
+
+  };
+
+
+
+  // Facebook login function
+
+  const loginWithFacebook = async () => {
+
+    try {
+
+      const provider = new FacebookAuthProvider();
+
+      await signInWithPopup(auth, provider);
+
+      toast({
+
+        title: "Welcome!",
+
+        description: "You've successfully signed in with Facebook",
+
+        variant: "default",
+
+      });
+
+      return Promise.resolve();
+
+    } catch (error) {
+
+      const errorMessage = (error as Error).message;
+
+      toast({
+
+        title: "Authentication failed",
+
+        description: errorMessage,
+
+        variant: "destructive",
+
+      });
+
+      return Promise.reject(error);
+
+    }
+
+  };
   // Logout function
   const logout = async () => {
     try {
@@ -133,6 +236,9 @@ const dispatch = useDispatch();
     loading,
     signup,
     login,
+      loginWithGoogle,
+
+    loginWithFacebook,
     logout
   };
 
