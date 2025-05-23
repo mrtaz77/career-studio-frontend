@@ -19,7 +19,7 @@ const SIDEBAR_WIDTH_MOBILE = '18rem';
 const SIDEBAR_WIDTH_ICON = '3rem';
 const SIDEBAR_KEYBOARD_SHORTCUT = 'b';
 
-type SidebarContext = {
+type SidebarContextType = {
   state: 'expanded' | 'collapsed';
   open: boolean;
   setOpen: (open: boolean) => void;
@@ -29,7 +29,7 @@ type SidebarContext = {
   toggleSidebar: () => void;
 };
 
-const SidebarContext = React.createContext<SidebarContext | null>(null);
+const SidebarContext = React.createContext<SidebarContextType | null>(null);
 
 function useSidebar() {
   const context = React.useContext(SidebarContext);
@@ -104,7 +104,7 @@ const SidebarProvider = React.forwardRef<
     // This makes it easier to style the sidebar with Tailwind classes.
     const state = open ? 'expanded' : 'collapsed';
 
-    const contextValue = React.useMemo<SidebarContext>(
+    const contextValue = React.useMemo<SidebarContextType>(
       () => ({
         state,
         open,
@@ -624,24 +624,20 @@ SidebarMenuBadge.displayName = 'SidebarMenuBadge';
 
 const SidebarMenuSkeleton = React.forwardRef<
   HTMLDivElement,
-
-  React.ComponentProps<"div"> & { showIcon?: boolean }
-
+  React.ComponentProps<'div'> & { showIcon?: boolean }
 >(({ className, showIcon = false, ...props }, ref) => {
   // Secure random width between 50% and 90%
   const width = React.useMemo(() => {
-
     // 1) Create a 32-bit unsigned int array of length 1
-    const array = new Uint32Array(1)
+    const array = new Uint32Array(1);
     // 2) Fill it with cryptographically-secure random bytes
-    window.crypto.getRandomValues(array)
+    window.crypto.getRandomValues(array);
     // 3) Turn that into a [0,1) fraction
-    const random01 = array[0] / (0xffffffff + 1) // 2⁻³²
+    const random01 = array[0] / (0xffffffff + 1); // 2⁻³²
     // 4) Scale into [0,40) and shift to [50,90)
-    const pct = Math.floor(random01 * 40) + 50
-    return `${pct}%`
-  }, [])
-
+    const pct = Math.floor(random01 * 40) + 50;
+    return `${pct}%`;
+  }, []);
 
   return (
     <div
