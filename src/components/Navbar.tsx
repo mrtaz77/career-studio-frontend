@@ -189,9 +189,12 @@ const Navbar = ({ openAuthDialog }: NavbarProps) => {
                 <Button 
                   variant="outline" 
                   className="border-jobathon-600 text-jobathon-600 hover:bg-jobathon-50 w-full"
-                  onClick={() => {
-                    openAuthDialog && openAuthDialog("login");
-                    setMobileMenuOpen(false);
+                  onClick={() => 
+                    {
+    // call only if openAuthDialog is defined
+    openAuthDialog?.("login");
+    setMobileMenuOpen(false);
+  
                   }}
                 >
                   Login
@@ -199,8 +202,8 @@ const Navbar = ({ openAuthDialog }: NavbarProps) => {
                 <Button 
                   className="bg-jobathon-600 hover:bg-jobathon-700 w-full"
                   onClick={() => {
-                    openAuthDialog && openAuthDialog("signup");
-                    setMobileMenuOpen(false);
+                   openAuthDialog?.("signup");
+    setMobileMenuOpen(false);
                   }}
                 >
                   Sign up
