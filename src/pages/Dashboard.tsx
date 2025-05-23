@@ -11,6 +11,7 @@ import { addUser, removeUser } from "../utils/authSlice"
 import { useSelector, useDispatch } from "react-redux"
 import { useNavigate } from 'react-router-dom';
 const Dashboard = () => {
+<<<<<<< HEAD
   const [activeTab, setActiveTab] = useState("overview");
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -44,6 +45,18 @@ const Dashboard = () => {
     })
   }, [])
   
+=======
+  const [activeTab, setActiveTab] = useState('overview');
+
+  // Mock user data
+  const user = {
+    name: 'Alex Johnson',
+    email: 'alex@example.com',
+    role: 'Product Designer',
+    joined: 'April 2023',
+  };
+
+>>>>>>> f70c42b8dd57ac615e3a405bfb205d78811f24af
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Top Navigation */}
@@ -52,7 +65,7 @@ const Dashboard = () => {
           <Link to="/" className="flex items-center">
             <span className="text-jobathon-700 font-display font-bold text-2xl">Career Studio</span>
           </Link>
-          
+
           <div className="flex items-center space-x-4">
             <div className="text-sm text-right">
               <p className="font-medium">{userDummy.name}</p>
@@ -64,7 +77,7 @@ const Dashboard = () => {
           </div>
         </div>
       </header>
-      
+
       <div className="container mx-auto px-4 py-8">
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Sidebar */}
@@ -81,45 +94,48 @@ const Dashboard = () => {
                   </div>
                 </div>
               </div>
-              
+
               <nav className="p-2">
-                <Button 
-                  variant={activeTab === "overview" ? "default" : "ghost"}
-                  className={`w-full justify-start mb-1 ${activeTab === "overview" ? "bg-jobathon-600" : ""}`} 
-                  onClick={() => setActiveTab("overview")}
+                <Button
+                  variant={activeTab === 'overview' ? 'default' : 'ghost'}
+                  className={`w-full justify-start mb-1 ${activeTab === 'overview' ? 'bg-jobathon-600' : ''}`}
+                  onClick={() => setActiveTab('overview')}
                 >
                   <User size={18} className="mr-2" />
                   Overview
                 </Button>
-                
-                <Button 
-                  variant={activeTab === "cv" ? "default" : "ghost"}
-                  className={`w-full justify-start mb-1 ${activeTab === "cv" ? "bg-jobathon-600" : ""}`}
-                  onClick={() => setActiveTab("cv")}
+
+                <Button
+                  variant={activeTab === 'cv' ? 'default' : 'ghost'}
+                  className={`w-full justify-start mb-1 ${activeTab === 'cv' ? 'bg-jobathon-600' : ''}`}
+                  onClick={() => setActiveTab('cv')}
                 >
                   <FileText size={18} className="mr-2" />
                   Smart CV
                 </Button>
-                
-                <Button 
-                  variant={activeTab === "portfolio" ? "default" : "ghost"}
-                  className={`w-full justify-start mb-1 ${activeTab === "portfolio" ? "bg-jobathon-600" : ""}`}
-                  onClick={() => setActiveTab("portfolio")}
+
+                <Button
+                  variant={activeTab === 'portfolio' ? 'default' : 'ghost'}
+                  className={`w-full justify-start mb-1 ${activeTab === 'portfolio' ? 'bg-jobathon-600' : ''}`}
+                  onClick={() => setActiveTab('portfolio')}
                 >
                   <Briefcase size={18} className="mr-2" />
                   Portfolio
                 </Button>
               </nav>
-              
+
               <div className="p-4 border-t border-gray-200">
-                <Button variant="ghost" className="w-full justify-start text-red-500 hover:text-red-700 hover:bg-red-50">
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start text-red-500 hover:text-red-700 hover:bg-red-50"
+                >
                   <LogOut size={18} className="mr-2" />
                   Log out
                 </Button>
               </div>
             </div>
           </div>
-          
+
           {/* Main Content */}
           <div className="lg:w-3/4">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -128,12 +144,16 @@ const Dashboard = () => {
                 <TabsTrigger value="cv">Smart CV</TabsTrigger>
                 <TabsTrigger value="portfolio">Portfolio</TabsTrigger>
               </TabsList>
-              
+
               <TabsContent value="overview">
                 <div className="grid gap-6">
                   <Card>
                     <CardHeader>
+<<<<<<< HEAD
                       <CardTitle>Welcome back, {userDummy.name.split(" ")[0]}</CardTitle>
+=======
+                      <CardTitle>Welcome back, {user.name.split(' ')[0]}</CardTitle>
+>>>>>>> f70c42b8dd57ac615e3a405bfb205d78811f24af
                       <CardDescription>
                         Here's an overview of your job search progress.
                       </CardDescription>
@@ -143,7 +163,9 @@ const Dashboard = () => {
                         <div className="bg-jobathon-50 p-6 rounded-lg">
                           <h4 className="text-lg font-medium mb-1">CV Completion</h4>
                           <div className="text-3xl font-bold text-jobathon-700">75%</div>
-                          <p className="text-sm text-gray-500 mt-2">Add more projects to reach 100%</p>
+                          <p className="text-sm text-gray-500 mt-2">
+                            Add more projects to reach 100%
+                          </p>
                         </div>
                         <div className="bg-jobathon-50 p-6 rounded-lg">
                           <h4 className="text-lg font-medium mb-1">Portfolio Views</h4>
@@ -156,7 +178,7 @@ const Dashboard = () => {
                           <p className="text-sm text-gray-500 mt-2">2 awaiting response</p>
                         </div>
                       </div>
-                      
+
                       <div className="mt-8">
                         <h3 className="text-lg font-medium mb-4">Recent Activity</h3>
                         <div className="space-y-3">
@@ -184,7 +206,7 @@ const Dashboard = () => {
                   </Card>
                 </div>
               </TabsContent>
-              
+
               <TabsContent value="cv">
                 <Card>
                   <CardHeader>
@@ -202,34 +224,53 @@ const Dashboard = () => {
                           </div>
                         </div>
                         <div className="flex space-x-2 mt-2">
-                          <Button className="flex-1 bg-jobathon-600 hover:bg-jobathon-700">Edit</Button>
-                          <Button variant="outline" className="flex-1">Download</Button>
+                          <Button className="flex-1 bg-jobathon-600 hover:bg-jobathon-700">
+                            Edit
+                          </Button>
+                          <Button variant="outline" className="flex-1">
+                            Download
+                          </Button>
                         </div>
                       </div>
-                      
+
                       <div className="border border-dashed border-gray-200 rounded-lg p-4 flex items-center justify-center">
                         <div className="text-center">
                           <div className="h-12 w-12 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-3">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-500">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="24"
+                              height="24"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              className="text-gray-500"
+                            >
                               <path d="M12 5v14M5 12h14"></path>
                             </svg>
                           </div>
                           <h3 className="font-medium mb-1">Create New Resume</h3>
-                          <p className="text-sm text-gray-500">Start from scratch or use a template</p>
+                          <p className="text-sm text-gray-500">
+                            Start from scratch or use a template
+                          </p>
                         </div>
                       </div>
                     </div>
-                    
+
                     <Button className="w-full">Create New CV</Button>
                   </CardContent>
                 </Card>
               </TabsContent>
-              
+
               <TabsContent value="portfolio">
                 <Card>
                   <CardHeader>
                     <CardTitle>Portfolio Builder</CardTitle>
-                    <CardDescription>Showcase your work and projects to potential employers</CardDescription>
+                    <CardDescription>
+                      Showcase your work and projects to potential employers
+                    </CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
@@ -242,15 +283,30 @@ const Dashboard = () => {
                           </div>
                         </div>
                         <div className="flex space-x-2 mt-2">
-                          <Button className="flex-1 bg-jobathon-600 hover:bg-jobathon-700">Edit</Button>
-                          <Button variant="outline" className="flex-1">View</Button>
+                          <Button className="flex-1 bg-jobathon-600 hover:bg-jobathon-700">
+                            Edit
+                          </Button>
+                          <Button variant="outline" className="flex-1">
+                            View
+                          </Button>
                         </div>
                       </div>
-                      
+
                       <div className="border border-dashed border-gray-200 rounded-lg p-4 flex items-center justify-center">
                         <div className="text-center">
                           <div className="h-12 w-12 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-3">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-500">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="24"
+                              height="24"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              className="text-gray-500"
+                            >
                               <path d="M12 5v14M5 12h14"></path>
                             </svg>
                           </div>
@@ -259,7 +315,7 @@ const Dashboard = () => {
                         </div>
                       </div>
                     </div>
-                    
+
                     <Button className="w-full">Create New Portfolio</Button>
                   </CardContent>
                 </Card>

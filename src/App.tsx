@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -10,6 +11,17 @@ import NotFound from "./pages/NotFound";
 import { AuthProvider } from "./context/AuthContext";
 import store from "./utils/store";
 import {Provider } from "react-redux"
+=======
+import { Toaster } from '@/components/ui/toaster';
+import { Toaster as Sonner } from '@/components/ui/sonner';
+import { TooltipProvider } from '@/components/ui/tooltip';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import Index from './pages/Index';
+import Dashboard from './pages/Dashboard';
+import NotFound from './pages/NotFound';
+
+>>>>>>> f70c42b8dd57ac615e3a405bfb205d78811f24af
 const queryClient = new QueryClient();
 
 // Protected route wrapper

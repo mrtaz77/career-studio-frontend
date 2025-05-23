@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 
 import { useState } from "react";
 import Navbar from "@/components/Navbar";
@@ -8,17 +9,27 @@ import Footer from "@/components/Footer";
 import AuthForm from "@/components/AuthForm";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useAuth } from "@/context/AuthContext";
+=======
+import { useState } from 'react';
+import Navbar from '@/components/Navbar';
+import Hero from '@/components/Hero';
+import Features from '@/components/Features';
+import Testimonials from '@/components/Testimonials';
+import Footer from '@/components/Footer';
+import AuthForm from '@/components/AuthForm';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+>>>>>>> f70c42b8dd57ac615e3a405bfb205d78811f24af
 
 const Index = () => {
-  const [authMode, setAuthMode] = useState<"login" | "signup">("login");
+  const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
   const [authDialogOpen, setAuthDialogOpen] = useState(false);
   const { currentUser } = useAuth();
 
   const toggleAuthMode = () => {
-    setAuthMode(prev => (prev === "login" ? "signup" : "login"));
+    setAuthMode((prev) => (prev === 'login' ? 'signup' : 'login'));
   };
 
-  const openAuthDialog = (mode: "login" | "signup") => {
+  const openAuthDialog = (mode: 'login' | 'signup') => {
     setAuthMode(mode);
     setAuthDialogOpen(true);
   };

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -6,18 +7,24 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { Loader2, Facebook } from "lucide-react";
+=======
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+>>>>>>> f70c42b8dd57ac615e3a405bfb205d78811f24af
 
 interface AuthFormProps {
-  mode: "login" | "signup";
+  mode: 'login' | 'signup';
   onToggleMode: () => void;
   onSuccess?: () => void;
 }
 
 const AuthForm = ({ mode, onToggleMode, onSuccess }: AuthFormProps) => {
   const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-    name: ""
+    email: '',
+    password: '',
+    name: '',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSocialLoading, setIsSocialLoading] = useState<string | null>(null);
@@ -26,11 +33,12 @@ const AuthForm = ({ mode, onToggleMode, onSuccess }: AuthFormProps) => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+<<<<<<< HEAD
     setIsSubmitting(true);
     
     try {
@@ -49,6 +57,10 @@ const AuthForm = ({ mode, onToggleMode, onSuccess }: AuthFormProps) => {
     } finally {
       setIsSubmitting(false);
     }
+=======
+    console.log('Form submitted with:', formData);
+    // In a real app, you'd connect this to your authentication system
+>>>>>>> f70c42b8dd57ac615e3a405bfb205d78811f24af
   };
 
   const handleGoogleLogin = async () => {
@@ -84,11 +96,11 @@ const AuthForm = ({ mode, onToggleMode, onSuccess }: AuthFormProps) => {
   return (
     <div className="w-full max-w-md mx-auto bg-white p-8 rounded-lg">
       <h2 className="text-2xl font-bold text-center mb-6">
-        {mode === "login" ? "Log in to your account" : "Create your account"}
+        {mode === 'login' ? 'Log in to your account' : 'Create your account'}
       </h2>
-      
+
       <form onSubmit={handleSubmit} className="space-y-4">
-        {mode === "signup" && (
+        {mode === 'signup' && (
           <div className="space-y-2">
             <Label htmlFor="name">Full Name</Label>
             <Input
@@ -104,7 +116,7 @@ const AuthForm = ({ mode, onToggleMode, onSuccess }: AuthFormProps) => {
             />
           </div>
         )}
-        
+
         <div className="space-y-2">
           <Label htmlFor="email">Email</Label>
           <Input
@@ -119,7 +131,7 @@ const AuthForm = ({ mode, onToggleMode, onSuccess }: AuthFormProps) => {
             disabled={isSubmitting}
           />
         </div>
-        
+
         <div className="space-y-2">
           <Label htmlFor="password">Password</Label>
           <Input
@@ -135,13 +147,14 @@ const AuthForm = ({ mode, onToggleMode, onSuccess }: AuthFormProps) => {
           />
         </div>
 
-        {mode === "login" && (
+        {mode === 'login' && (
           <div className="text-right">
             <a href="#" className="text-sm text-jobathon-600 hover:underline">
               Forgot password?
             </a>
           </div>
         )}
+<<<<<<< HEAD
         
         <Button 
           type="submit" 
@@ -156,22 +169,27 @@ const AuthForm = ({ mode, onToggleMode, onSuccess }: AuthFormProps) => {
           ) : (
             mode === "login" ? "Sign in" : "Sign up"
           )}
+=======
+
+        <Button type="submit" className="w-full bg-jobathon-600 hover:bg-jobathon-700 py-6">
+          {mode === 'login' ? 'Sign in' : 'Sign up'}
+>>>>>>> f70c42b8dd57ac615e3a405bfb205d78811f24af
         </Button>
       </form>
-      
+
       <div className="mt-6 text-center text-sm">
         <p>
-          {mode === "login" ? "Don't have an account?" : "Already have an account?"}
+          {mode === 'login' ? "Don't have an account?" : 'Already have an account?'}
           <button
             onClick={onToggleMode}
             className="ml-1 text-jobathon-600 hover:underline focus:outline-none"
             disabled={isSubmitting || isSocialLoading !== null}
           >
-            {mode === "login" ? "Sign up" : "Sign in"}
+            {mode === 'login' ? 'Sign up' : 'Sign in'}
           </button>
         </p>
       </div>
-      
+
       <div className="mt-6">
         <div className="relative">
           <div className="absolute inset-0 flex items-center">

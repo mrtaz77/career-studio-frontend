@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -50,6 +49,7 @@ const Navbar = ({ openAuthDialog }: NavbarProps) => {
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center space-x-8">
           <div className="space-x-6">
+<<<<<<< HEAD
             <Link to="/" className="text-gray-600 hover:text-jobathon-600 font-medium">Home</Link>
             {/* <Link to="#features" className="text-gray-600 hover:text-jobathon-600 font-medium">Features</Link>
             <Link to="#testimonials" className="text-gray-600 hover:text-jobathon-600 font-medium">Testimonials</Link> */}
@@ -110,13 +110,32 @@ const Navbar = ({ openAuthDialog }: NavbarProps) => {
               </Button>
             </div>
           )}
+=======
+            <Link to="/" className="text-gray-600 hover:text-jobathon-600 font-medium">
+              Home
+            </Link>
+            <Link to="#features" className="text-gray-600 hover:text-jobathon-600 font-medium">
+              Features
+            </Link>
+            <Link to="#testimonials" className="text-gray-600 hover:text-jobathon-600 font-medium">
+              Testimonials
+            </Link>
+          </div>
+
+          <div className="space-x-3">
+            <Button
+              variant="outline"
+              className="border-jobathon-600 text-jobathon-600 hover:bg-jobathon-50"
+            >
+              Login
+            </Button>
+            <Button className="bg-jobathon-600 hover:bg-jobathon-700">Sign up</Button>
+          </div>
+>>>>>>> f70c42b8dd57ac615e3a405bfb205d78811f24af
         </div>
 
         {/* Mobile Menu Button */}
-        <button 
-          className="md:hidden text-gray-500 hover:text-gray-700"
-          onClick={toggleMobileMenu}
-        >
+        <button className="md:hidden text-gray-500 hover:text-gray-700" onClick={toggleMobileMenu}>
           <Menu size={24} />
         </button>
       </div>
@@ -125,10 +144,17 @@ const Navbar = ({ openAuthDialog }: NavbarProps) => {
       {mobileMenuOpen && (
         <div className="md:hidden bg-white px-4 py-3 shadow-lg border-t animate-fade-in">
           <div className="flex flex-col space-y-4">
-            <Link to="/" className="text-gray-600 hover:text-jobathon-600 py-2">Home</Link>
-            <Link to="#features" className="text-gray-600 hover:text-jobathon-600 py-2">Features</Link>
-            <Link to="#testimonials" className="text-gray-600 hover:text-jobathon-600 py-2">Testimonials</Link>
+            <Link to="/" className="text-gray-600 hover:text-jobathon-600 py-2">
+              Home
+            </Link>
+            <Link to="#features" className="text-gray-600 hover:text-jobathon-600 py-2">
+              Features
+            </Link>
+            <Link to="#testimonials" className="text-gray-600 hover:text-jobathon-600 py-2">
+              Testimonials
+            </Link>
             <hr className="border-gray-200" />
+<<<<<<< HEAD
             
             {currentUser ? (
               <>
@@ -181,6 +207,15 @@ const Navbar = ({ openAuthDialog }: NavbarProps) => {
                 </Button>
               </>
             )}
+=======
+            <Button
+              variant="outline"
+              className="border-jobathon-600 text-jobathon-600 hover:bg-jobathon-50 w-full"
+            >
+              Login
+            </Button>
+            <Button className="bg-jobathon-600 hover:bg-jobathon-700 w-full">Sign up</Button>
+>>>>>>> f70c42b8dd57ac615e3a405bfb205d78811f24af
           </div>
         </div>
       )}
