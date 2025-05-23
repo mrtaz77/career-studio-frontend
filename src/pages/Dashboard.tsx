@@ -4,17 +4,45 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { FileText, Briefcase, User, LogOut } from 'lucide-react';
-
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth } from '../lib/firebase';
+import { useEffect } from 'react';
+import { addUser, removeUser } from '../utils/authSlice';
+import { useSelector, useDispatch } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
-
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  //const user = useSelector((store) => store.authenticate)
   // Mock user data
-  const user = {
+  const userDummy = {
     name: 'Alex Johnson',
     email: 'alex@example.com',
     role: 'Product Designer',
     joined: 'April 2023',
   };
+
+  useEffect(() => {
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        // User is signed in, see docs for a list of available properties
+        // https://firebase.google.com/docs/reference/js/auth.user
+        const { uid, email, displayName } = user;
+        //dispatch(setShowGptSearch())
+        dispatch(addUser({ uid: uid, email: email, displayName: displayName }));
+        navigate('/dashboard');
+
+        // ...
+      } else {
+        // User is signed out
+        //dispatch(setShowGptSearch())
+        dispatch(removeUser());
+        navigate('/');
+        // ...
+      }
+    });
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -27,11 +55,11 @@ const Dashboard = () => {
 
           <div className="flex items-center space-x-4">
             <div className="text-sm text-right">
-              <p className="font-medium">{user.name}</p>
-              <p className="text-gray-500">{user.role}</p>
+              <p className="font-medium">{userDummy.name}</p>
+              <p className="text-gray-500">{userDummy.role}</p>
             </div>
             <div className="h-10 w-10 rounded-full bg-jobathon-100 flex items-center justify-center text-jobathon-700 font-medium">
-              {user.name.charAt(0)}
+              {userDummy.name.charAt(0)}
             </div>
           </div>
         </div>
@@ -45,11 +73,11 @@ const Dashboard = () => {
               <div className="p-6 border-b border-gray-200">
                 <div className="flex items-center space-x-3">
                   <div className="h-14 w-14 rounded-full bg-jobathon-100 flex items-center justify-center text-jobathon-700 text-xl font-medium">
-                    {user.name.charAt(0)}
+                    {userDummy.name.charAt(0)}
                   </div>
                   <div>
-                    <h3 className="font-medium">{user.name}</h3>
-                    <p className="text-sm text-gray-500">{user.email}</p>
+                    <h3 className="font-medium">{userDummy.name}</h3>
+                    <p className="text-sm text-gray-500">{userDummy.email}</p>
                   </div>
                 </div>
               </div>
@@ -108,9 +136,10 @@ const Dashboard = () => {
                 <div className="grid gap-6">
                   <Card>
                     <CardHeader>
-                      <CardTitle>Welcome back, {user.name.split(' ')[0]}</CardTitle>
+                      <CardTitle>Welcome back, {userDummy.name.split(' ')[0]}</CardTitle>
+
                       <CardDescription>
-                        Here's an overview of your job search progress.
+                        Here is an overview of your job search progress.
                       </CardDescription>
                     </CardHeader>
                     <CardContent>

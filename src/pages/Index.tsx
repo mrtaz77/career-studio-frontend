@@ -1,3 +1,5 @@
+import * as React from 'react';
+
 import { useState } from 'react';
 import Navbar from '@/components/Navbar';
 import Hero from '@/components/Hero';
@@ -6,10 +8,12 @@ import Testimonials from '@/components/Testimonials';
 import Footer from '@/components/Footer';
 import AuthForm from '@/components/AuthForm';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { useAuth } from '@/context/AuthContext';
 
 const Index = () => {
   const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
   const [authDialogOpen, setAuthDialogOpen] = useState(false);
+  const { currentUser } = useAuth();
 
   const toggleAuthMode = () => {
     setAuthMode((prev) => (prev === 'login' ? 'signup' : 'login'));
@@ -20,9 +24,13 @@ const Index = () => {
     setAuthDialogOpen(true);
   };
 
+  const closeAuthDialog = () => {
+    setAuthDialogOpen(false);
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
-      <Navbar />
+      <Navbar openAuthDialog={openAuthDialog} />
       <main className="flex-grow">
         <Hero />
         <Features />
@@ -32,7 +40,7 @@ const Index = () => {
 
       <Dialog open={authDialogOpen} onOpenChange={setAuthDialogOpen}>
         <DialogContent className="sm:max-w-md">
-          <AuthForm mode={authMode} onToggleMode={toggleAuthMode} />
+          <AuthForm mode={authMode} onToggleMode={toggleAuthMode} onSuccess={closeAuthDialog} />
         </DialogContent>
       </Dialog>
     </div>
