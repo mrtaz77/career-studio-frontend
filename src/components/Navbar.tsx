@@ -1,24 +1,20 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { 
-  Menu, 
-  User,
-  LogOut
-} from 'lucide-react';
+import { Menu, User, LogOut } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuLabel, 
-  DropdownMenuSeparator, 
-  DropdownMenuTrigger 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
 interface NavbarProps {
-  openAuthDialog?: (mode: "login" | "signup") => void;
+  openAuthDialog?: (mode: 'login' | 'signup') => void;
 }
 
 const Navbar = ({ openAuthDialog }: NavbarProps) => {
@@ -35,7 +31,7 @@ const Navbar = ({ openAuthDialog }: NavbarProps) => {
       await logout();
       navigate('/');
     } catch (error) {
-      console.error("Logout error:", error);
+      console.error('Logout error:', error);
     }
   };
 
@@ -49,35 +45,38 @@ const Navbar = ({ openAuthDialog }: NavbarProps) => {
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center space-x-8">
           <div className="space-x-6">
-<<<<<<< HEAD
-            <Link to="/" className="text-gray-600 hover:text-jobathon-600 font-medium">Home</Link>
+            <Link to="/" className="text-gray-600 hover:text-jobathon-600 font-medium">
+              Home
+            </Link>
             {/* <Link to="#features" className="text-gray-600 hover:text-jobathon-600 font-medium">Features</Link>
             <Link to="#testimonials" className="text-gray-600 hover:text-jobathon-600 font-medium">Testimonials</Link> */}
           </div>
-          
+
           {currentUser ? (
             <div className="flex items-center space-x-4">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 className="border-jobathon-600 text-jobathon-600 hover:bg-jobathon-50"
                 onClick={() => navigate('/dashboard')}
               >
                 Dashboard
               </Button>
-              
+
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Avatar className="cursor-pointer">
-                    <AvatarImage src={currentUser.photoURL || ""} />
+                    <AvatarImage src={currentUser.photoURL || ''} />
                     <AvatarFallback className="bg-jobathon-100 text-jobathon-600 font-medium">
-                      {currentUser.displayName ? currentUser.displayName.charAt(0).toUpperCase() : currentUser.email?.charAt(0).toUpperCase()}
+                      {currentUser.displayName
+                        ? currentUser.displayName.charAt(0).toUpperCase()
+                        : currentUser.email?.charAt(0).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuLabel>
                     <div className="flex flex-col">
-                      <span>{currentUser.displayName || "User"}</span>
+                      <span>{currentUser.displayName || 'User'}</span>
                       <span className="text-xs text-gray-500 font-normal">{currentUser.email}</span>
                     </div>
                   </DropdownMenuLabel>
@@ -95,43 +94,21 @@ const Navbar = ({ openAuthDialog }: NavbarProps) => {
             </div>
           ) : (
             <div className="space-x-3">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 className="border-jobathon-600 text-jobathon-600 hover:bg-jobathon-50"
-                onClick={() => openAuthDialog && openAuthDialog("login")}
+                onClick={() => openAuthDialog && openAuthDialog('login')}
               >
                 Login
               </Button>
-              <Button 
+              <Button
                 className="bg-jobathon-600 hover:bg-jobathon-700"
-                onClick={() => openAuthDialog && openAuthDialog("signup")}
+                onClick={() => openAuthDialog && openAuthDialog('signup')}
               >
                 Sign up
               </Button>
             </div>
           )}
-=======
-            <Link to="/" className="text-gray-600 hover:text-jobathon-600 font-medium">
-              Home
-            </Link>
-            <Link to="#features" className="text-gray-600 hover:text-jobathon-600 font-medium">
-              Features
-            </Link>
-            <Link to="#testimonials" className="text-gray-600 hover:text-jobathon-600 font-medium">
-              Testimonials
-            </Link>
-          </div>
-
-          <div className="space-x-3">
-            <Button
-              variant="outline"
-              className="border-jobathon-600 text-jobathon-600 hover:bg-jobathon-50"
-            >
-              Login
-            </Button>
-            <Button className="bg-jobathon-600 hover:bg-jobathon-700">Sign up</Button>
-          </div>
->>>>>>> f70c42b8dd57ac615e3a405bfb205d78811f24af
         </div>
 
         {/* Mobile Menu Button */}
@@ -154,30 +131,31 @@ const Navbar = ({ openAuthDialog }: NavbarProps) => {
               Testimonials
             </Link>
             <hr className="border-gray-200" />
-<<<<<<< HEAD
-            
+
             {currentUser ? (
               <>
                 <div className="flex items-center space-x-3 py-2">
                   <Avatar>
-                    <AvatarImage src={currentUser.photoURL || ""} />
+                    <AvatarImage src={currentUser.photoURL || ''} />
                     <AvatarFallback className="bg-jobathon-100 text-jobathon-600 font-medium">
-                      {currentUser.displayName ? currentUser.displayName.charAt(0).toUpperCase() : currentUser.email?.charAt(0).toUpperCase()}
+                      {currentUser.displayName
+                        ? currentUser.displayName.charAt(0).toUpperCase()
+                        : currentUser.email?.charAt(0).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex flex-col">
-                    <span className="font-medium">{currentUser.displayName || "User"}</span>
+                    <span className="font-medium">{currentUser.displayName || 'User'}</span>
                     <span className="text-xs text-gray-500">{currentUser.email}</span>
                   </div>
                 </div>
-                <Button 
+                <Button
                   className="bg-jobathon-600 hover:bg-jobathon-700 w-full"
                   onClick={() => navigate('/dashboard')}
                 >
                   Dashboard
                 </Button>
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   className="border-red-500 text-red-500 hover:bg-red-50 w-full"
                   onClick={handleLogout}
                 >
@@ -186,39 +164,28 @@ const Navbar = ({ openAuthDialog }: NavbarProps) => {
               </>
             ) : (
               <>
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   className="border-jobathon-600 text-jobathon-600 hover:bg-jobathon-50 w-full"
-                  onClick={() => 
-                    {
-    // call only if openAuthDialog is defined
-    openAuthDialog?.("login");
-    setMobileMenuOpen(false);
-  
+                  onClick={() => {
+                    // call only if openAuthDialog is defined
+                    openAuthDialog?.('login');
+                    setMobileMenuOpen(false);
                   }}
                 >
                   Login
                 </Button>
-                <Button 
+                <Button
                   className="bg-jobathon-600 hover:bg-jobathon-700 w-full"
                   onClick={() => {
-                   openAuthDialog?.("signup");
-    setMobileMenuOpen(false);
+                    openAuthDialog?.('signup');
+                    setMobileMenuOpen(false);
                   }}
                 >
                   Sign up
                 </Button>
               </>
             )}
-=======
-            <Button
-              variant="outline"
-              className="border-jobathon-600 text-jobathon-600 hover:bg-jobathon-50 w-full"
-            >
-              Login
-            </Button>
-            <Button className="bg-jobathon-600 hover:bg-jobathon-700 w-full">Sign up</Button>
->>>>>>> f70c42b8dd57ac615e3a405bfb205d78811f24af
           </div>
         </div>
       )}

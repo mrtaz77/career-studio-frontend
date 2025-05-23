@@ -1,6 +1,8 @@
+// eslint.config.js
 import { defineConfig } from 'eslint/config';
 import js from '@eslint/js';
-import tseslint from 'typescript-eslint';
+import parser from '@typescript-eslint/parser';
+import tsPlugin from '@typescript-eslint/eslint-plugin';
 import pluginReact from 'eslint-plugin-react';
 import reactHooks from 'eslint-plugin-react-hooks';
 import reactRefresh from 'eslint-plugin-react-refresh';
@@ -10,18 +12,21 @@ import pluginJest from 'eslint-plugin-jest';
 import globals from 'globals';
 
 export default defineConfig([
-  // General TypeScript + JavaScript settings
   {
     ignores: ['eslint.config.js', 'node_modules', 'dist', 'build'],
+
+    // Run on all JS/TS files
     files: ['**/*.{js,ts,jsx,tsx}'],
+
     languageOptions: {
-      parser: tseslint.parser,
+      parser, // from @typescript-eslint/parser
       parserOptions: {
         project: './tsconfig.eslint.json',
         tsconfigRootDir: import.meta.dirname,
         sourceType: 'module',
         ecmaVersion: 'latest',
         ecmaFeatures: { jsx: true },
+        jsxRuntime: 'automatic', // <-- use the new React transform
       },
       globals: {
         ...globals.browser,
@@ -30,17 +35,17 @@ export default defineConfig([
         process: 'readonly',
       },
     },
+
     plugins: {
-      '@typescript-eslint': tseslint.plugin,
+      '@typescript-eslint': tsPlugin,
       react: pluginReact,
       'react-hooks': reactHooks,
       'react-refresh': reactRefresh,
-      prettier: prettier,
+      prettier,
     },
+
     settings: {
-      react: {
-        version: 'detect',
-      },
+      react: { version: 'detect' },
       'import/resolver': {
         alias: {
           map: [['@', './src']],
@@ -48,48 +53,55 @@ export default defineConfig([
         },
       },
     },
+
     rules: {
+      // base JS + TS rules
       ...js.configs.recommended.rules,
-      ...tseslint.configs.recommended[1].rules,
+      ...tsPlugin.configs.recommended.rules,
       ...pluginReact.configs.recommended.rules,
       ...reactHooks.configs.recommended.rules,
       ...prettierConfig.rules,
+
+      // Turn off core no-unused-vars in favor of the TS version:
       'no-unused-vars': 'off',
-      'react/prop-types': 'off',
-      // …and configure the TS-aware one instead
       '@typescript-eslint/no-unused-vars': [
         'warn',
         {
-          argsIgnorePattern: '^_', // ignore unused args that start with _
-          varsIgnorePattern: '^_', // likewise for variables
-          ignoreRestSiblings: true, // for object rest spreads
-        },
-      ],
-      'react/no-unknown-property': [
-        'error',
-        {
-          ignore: ['cmdk-input-wrapper', 'cmdk-group-heading'],
+          argsIgnorePattern: '^_', // ignore unused args starting with _
+          varsIgnorePattern: '^_', // ignore unused vars starting with _
+          ignoreRestSiblings: true, // ignore rest siblings in object spreads
         },
       ],
 
+      // Disable prop-types (we use TS for typing)
+      'react/prop-types': 'off',
+
+      // Custom attributes you whitelist
+      'react/no-unknown-property': [
+        'error',
+        { ignore: ['cmdk-input-wrapper', 'cmdk-group-heading'] },
+      ],
+
+      // React 17+ automatic transform
       'react/react-in-jsx-scope': 'off',
+
+      // Allow non-component exports in refresh
       'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
+
+      // Prettier as ESLint warnings
       'prettier/prettier': 'warn',
-      '@typescript-eslint/no-unused-vars': ['warn'],
+
+      // catch accidental consoles
       'no-console': 'warn',
     },
   },
 
-  // Test file rules (Jest)
+  // Jest tests
   {
     files: ['**/*.test.{js,ts,jsx,tsx}', '**/__tests__/**/*.{js,ts,jsx,tsx}'],
-    plugins: {
-      jest: pluginJest,
-    },
+    plugins: { jest: pluginJest },
     languageOptions: {
-      globals: {
-        ...pluginJest.environments.globals.globals,
-      },
+      globals: { ...pluginJest.environments.globals.globals },
     },
     rules: {
       ...pluginJest.configs.recommended.rules,

@@ -1,11 +1,9 @@
-import React from "react"
-//import Header from "./Header"
-import { BACK_IMG_URL } from "../lib/utils.ts"
-import { useState, useRef } from "react"
+import { BACK_IMG_URL } from '../lib/utils.ts';
+import { useState, useRef } from 'react';
 //import { validate } from "../utils/validate"
 //import { auth } from "../utils/firebase"
 
-import { useNavigate } from "react-router-dom"
+import { useNavigate } from 'react-router-dom';
 
 // import {
 //   createUserWithEmailAndPassword,
@@ -20,20 +18,20 @@ import { useNavigate } from "react-router-dom"
 //import Footer from "./Footer"
 const LogIn = () => {
   //const navigate = useNavigate()
-  const [isSignIn, setIsSignIn] = useState(true)
-  const [errorMessage, setErrorMessage] = useState(null)
+  const [isSignIn, setIsSignIn] = useState(true);
+  const [errorMessage, setErrorMessage] = useState(null);
   //const [emptyFieldMessage, setEmptyFieldMessage] = useState("")
 
-  const email = useRef(null)
-  const password = useRef(null)
-  const name = useRef(null)
+  const email = useRef(null);
+  const password = useRef(null);
+  const name = useRef(null);
   // const dispatch = useDispatch()
 
   //const items=useSelector(store=>store.authenticate.items);
   //console.log("slice",items)
   const toggleSignIn = () => {
-    setIsSignIn(!isSignIn)
-  }
+    setIsSignIn(!isSignIn);
+  };
 
   // const handleFacebookClick = () => {
   //   signInWithPopup(auth, provider)
@@ -152,9 +150,9 @@ const LogIn = () => {
       <div
         style={{
           backgroundImage: `linear-gradient(to top, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0) 60%, rgba(0, 0, 0, 0.8) 100%), url(${BACK_IMG_URL})`,
-          height: "100vh",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
+          height: '100vh',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
         }}
         className="flex justify-center items-center "
       >
@@ -162,13 +160,11 @@ const LogIn = () => {
         <div className="flex flex-col w-3/12 absolute">
           <form
             onSubmit={(e) => {
-              e.preventDefault()
+              e.preventDefault();
             }}
             className=" my-60  p-12 bg-black/70 rounded shadow-lg bg-gradient-to-br"
           >
-            <p className="text-3xl text-white my-4">
-              {isSignIn ? "Sign In" : "Sign Up"}
-            </p>
+            <p className="text-3xl text-white my-4">{isSignIn ? 'Sign In' : 'Sign Up'}</p>
             {!isSignIn && (
               <input
                 ref={name}
@@ -196,24 +192,21 @@ const LogIn = () => {
               className="bg-red-600 text-white rounded p-2 my-4 w-full "
               // onClick={handleButtonClick}
             >
-              {isSignIn ? "Sign In" : "Sign Up"}
+              {isSignIn ? 'Sign In' : 'Sign Up'}
             </button>
             <p className="text-white content-center ">
               <h1 className="ml-28">Or</h1>
             </p>
 
-          
             <p className="text-white cursor-pointer" onClick={toggleSignIn}>
-              {isSignIn
-                ? "New to MovieGpt48 ? Sign Up"
-                : "Already registered? Sign In"}
+              {isSignIn ? 'New to MovieGpt48 ? Sign Up' : 'Already registered? Sign In'}
             </p>
           </form>
         </div>
       </div>
       {/* <Footer/> */}
     </div>
-  )
-}
+  );
+};
 
-export default LogIn
+export default LogIn;
