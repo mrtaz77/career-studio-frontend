@@ -624,14 +624,24 @@ SidebarMenuBadge.displayName = 'SidebarMenuBadge';
 
 const SidebarMenuSkeleton = React.forwardRef<
   HTMLDivElement,
-  React.ComponentProps<'div'> & {
-    showIcon?: boolean;
-  }
+
+  React.ComponentProps<"div"> & { showIcon?: boolean }
+
 >(({ className, showIcon = false, ...props }, ref) => {
-  // Random width between 50 to 90%.
+  // Secure random width between 50% and 90%
   const width = React.useMemo(() => {
-    return `${Math.floor(Math.random() * 40) + 50}%`;
-  }, []);
+
+    // 1) Create a 32-bit unsigned int array of length 1
+    const array = new Uint32Array(1)
+    // 2) Fill it with cryptographically-secure random bytes
+    window.crypto.getRandomValues(array)
+    // 3) Turn that into a [0,1) fraction
+    const random01 = array[0] / (0xffffffff + 1) // 2⁻³²
+    // 4) Scale into [0,40) and shift to [50,90)
+    const pct = Math.floor(random01 * 40) + 50
+    return `${pct}%`
+  }, [])
+
 
   return (
     <div
