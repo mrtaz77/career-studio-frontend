@@ -38,13 +38,16 @@ jobs:
     needs: build
     steps:
       - uses: actions/checkout@v4
-        with: { fetch-depth: 0 }
+        with:
+          fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of analysis
 
       - uses: actions/setup-node@v4
-        with: { node-version: 18.x }
+        with:
+          node-version: 18.x
 
       - run: npm ci
 
-      - uses: SonarSource/sonarqube-scan-action@v5
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@v5
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
