@@ -1,15 +1,5 @@
-<<<<<<< HEAD
+import * as React from 'react';
 
-import { useState } from "react";
-import Navbar from "@/components/Navbar";
-import Hero from "@/components/Hero";
-import Features from "@/components/Features";
-import Testimonials from "@/components/Testimonials";
-import Footer from "@/components/Footer";
-import AuthForm from "@/components/AuthForm";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { useAuth } from "@/context/AuthContext";
-=======
 import { useState } from 'react';
 import Navbar from '@/components/Navbar';
 import Hero from '@/components/Hero';
@@ -18,7 +8,7 @@ import Testimonials from '@/components/Testimonials';
 import Footer from '@/components/Footer';
 import AuthForm from '@/components/AuthForm';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
->>>>>>> f70c42b8dd57ac615e3a405bfb205d78811f24af
+import { useAuth } from '@/context/AuthContext';
 
 const Index = () => {
   const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
@@ -50,11 +40,7 @@ const Index = () => {
 
       <Dialog open={authDialogOpen} onOpenChange={setAuthDialogOpen}>
         <DialogContent className="sm:max-w-md">
-          <AuthForm 
-            mode={authMode} 
-            onToggleMode={toggleAuthMode}
-            onSuccess={closeAuthDialog} 
-          />
+          <AuthForm mode={authMode} onToggleMode={toggleAuthMode} onSuccess={closeAuthDialog} />
         </DialogContent>
       </Dialog>
     </div>

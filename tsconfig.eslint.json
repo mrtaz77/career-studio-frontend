@@ -11,7 +11,8 @@
     // and still pick up your config files:
     "tailwind.config.ts",
     "vite.config.ts",
-    "commitlint.config.js"
+    "commitlint.config.js",
+    "postcss.config.js"
   ],
   "exclude": ["node_modules", "dist", "build", "eslint.config.js"]
 }

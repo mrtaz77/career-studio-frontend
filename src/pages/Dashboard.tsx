@@ -4,59 +4,46 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { FileText, Briefcase, User, LogOut } from 'lucide-react';
-import { onAuthStateChanged } from "firebase/auth"
-import {auth} from "../lib/firebase"
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth } from '../lib/firebase';
 import { useEffect } from 'react';
-import { addUser, removeUser } from "../utils/authSlice"
-import { useSelector, useDispatch } from "react-redux"
+import { addUser, removeUser } from '../utils/authSlice';
+import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 const Dashboard = () => {
-<<<<<<< HEAD
-  const [activeTab, setActiveTab] = useState("overview");
+  const [activeTab, setActiveTab] = useState('overview');
   const navigate = useNavigate();
   const dispatch = useDispatch();
   //const user = useSelector((store) => store.authenticate)
   // Mock user data
   const userDummy = {
-    name: "Alex Johnson",
-    email: "alex@example.com",
-    role: "Product Designer",
-    joined: "April 2023"
-  };
-
-   useEffect(() => {
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        // User is signed in, see docs for a list of available properties
-        // https://firebase.google.com/docs/reference/js/auth.user
-        const { uid, email, displayName } = user
-        //dispatch(setShowGptSearch())
-        dispatch(addUser({ uid: uid, email: email, displayName: displayName }))
-        navigate("/dashboard")
-
-        // ...
-      } else {
-        // User is signed out
-        //dispatch(setShowGptSearch())
-        dispatch(removeUser())
-        navigate("/")
-        // ...
-      }
-    })
-  }, [])
-  
-=======
-  const [activeTab, setActiveTab] = useState('overview');
-
-  // Mock user data
-  const user = {
     name: 'Alex Johnson',
     email: 'alex@example.com',
     role: 'Product Designer',
     joined: 'April 2023',
   };
 
->>>>>>> f70c42b8dd57ac615e3a405bfb205d78811f24af
+  useEffect(() => {
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        // User is signed in, see docs for a list of available properties
+        // https://firebase.google.com/docs/reference/js/auth.user
+        const { uid, email, displayName } = user;
+        //dispatch(setShowGptSearch())
+        dispatch(addUser({ uid: uid, email: email, displayName: displayName }));
+        navigate('/dashboard');
+
+        // ...
+      } else {
+        // User is signed out
+        //dispatch(setShowGptSearch())
+        dispatch(removeUser());
+        navigate('/');
+        // ...
+      }
+    });
+  }, []);
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Top Navigation */}
@@ -149,13 +136,10 @@ const Dashboard = () => {
                 <div className="grid gap-6">
                   <Card>
                     <CardHeader>
-<<<<<<< HEAD
-                      <CardTitle>Welcome back, {userDummy.name.split(" ")[0]}</CardTitle>
-=======
-                      <CardTitle>Welcome back, {user.name.split(' ')[0]}</CardTitle>
->>>>>>> f70c42b8dd57ac615e3a405bfb205d78811f24af
+                      <CardTitle>Welcome back, {userDummy.name.split(' ')[0]}</CardTitle>
+
                       <CardDescription>
-                        Here's an overview of your job search progress.
+                        Here is an overview of your job search progress.
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
