@@ -55,7 +55,7 @@ const Features = () => {
             <div className="md:w-2/3 mb-6 md:mb-0 md:pr-6">
               <h3 className="text-2xl font-bold mb-4 text-gray-900">Ready to boost your career?</h3>
               <p className="text-gray-600 mb-4">
-                Join thousands of job seekers who've used Career Studio to land their dream jobs.
+                Join thousands of job seekers who have used Career Studio to land their dream jobs.
                 Our platform is designed to help you showcase your skills and experience in the best
                 possible way.
               </p>
@@ -81,5 +81,4 @@ const Features = () => {
     </div>
   );
 };
-
 export default Features;

@@ -11,7 +11,7 @@ const Hero = () => {
             </h1>
             <p className="text-lg text-gray-600 mb-8">
               Create stunning portfolios and smart CVs that get you noticed. Stand out from the
-              crowd with Career Studio's powerful career tools.
+              crowd with Career Studios powerful career tools.
             </p>
             <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4">
               <Button className="bg-jobathon-600 hover:bg-jobathon-700 text-white px-8 py-6 text-lg">

@@ -32,7 +32,7 @@ const Testimonials = () => {
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">What Our Users Say</h2>
           <p className="text-gray-600 max-w-2xl mx-auto">
-            Thousands of job seekers have used Career Studio to advance their careers. Here's what
+            Thousands of job seekers have used Career Studio to advance their careers. Here is what
             some of them have to say.
           </p>
         </div>
@@ -54,7 +54,7 @@ const Testimonials = () => {
                 </div>
               </div>
               <div className="mb-4 text-jobathon-600">★★★★★</div>
-              <p className="text-gray-700 italic">"{testimonial.quote}"</p>
+              <p className="text-gray-700 italic">{testimonial.quote}</p>
             </div>
           ))}
         </div>

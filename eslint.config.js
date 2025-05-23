@@ -55,6 +55,7 @@ export default defineConfig([
       ...reactHooks.configs.recommended.rules,
       ...prettierConfig.rules,
       'no-unused-vars': 'off',
+      'react/prop-types': 'off',
       // …and configure the TS-aware one instead
       '@typescript-eslint/no-unused-vars': [
         'warn',
@@ -64,6 +65,13 @@ export default defineConfig([
           ignoreRestSiblings: true, // for object rest spreads
         },
       ],
+      'react/no-unknown-property': [
+        'error',
+        {
+          ignore: ['cmdk-input-wrapper', 'cmdk-group-heading'],
+        },
+      ],
+
       'react/react-in-jsx-scope': 'off',
       'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
       'prettier/prettier': 'warn',
