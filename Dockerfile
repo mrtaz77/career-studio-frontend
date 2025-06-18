@@ -22,8 +22,8 @@ ENV VITE_FIREBASE_API_KEY=$VITE_FIREBASE_API_KEY \
     VITE_FIREBASE_MEASUREMENT_ID=$VITE_FIREBASE_MEASUREMENT_ID \
     VITE_API_BASE_URL=$VITE_API_BASE_URL
 
-COPY package.json package-lock.json* ./
-RUN npm install
+COPY package.json ./
+RUN npm install --ignore-scripts
 
 COPY . .
 RUN npm run build
