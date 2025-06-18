@@ -2,10 +2,14 @@ name: Frontend CI + Sonar
 
 on:
   push:
-    branches: [main, develop]
+    branches: main
   pull_request:
-    branches: [main, develop]
+    branches: main
     types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  id-token: write
 
 jobs:
   build:
