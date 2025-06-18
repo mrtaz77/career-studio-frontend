@@ -1,0 +1,41 @@
+# Dependency directories
+node_modules
+
+# Vite output directory (in case it's different)
+dist
+
+# Logs and OS junk
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.DS_Store
+
+# Environment/configs
+.env
+.env.*
+
+# Git & Editor metadata
+.git
+.gitattributes
+.gitignore
+.vscode
+.idea
+
+# Test & coverage files
+coverage
+*.test.*
+*.spec.*
+*.snap
+
+# Sonar
+sonar-project.properties
+
+# Misc
+*.swp
+*.swo
+*.bak
+*.tmp
+
+# Lint cache
+.eslintcache

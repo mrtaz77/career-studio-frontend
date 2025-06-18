@@ -1,0 +1,18 @@
+// tsconfig.eslint.json
+{
+  "extends": "./tsconfig.json",
+  "include": [
+    // split the brace‐expansion into four explicit globs:
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "src/**/*.js",
+    "src/**/*.jsx",
+
+    // and still pick up your config files:
+    "tailwind.config.ts",
+    "vite.config.ts",
+    "commitlint.config.js",
+    "postcss.config.js"
+  ],
+  "exclude": ["node_modules", "dist", "build", "eslint.config.js"]
+}
