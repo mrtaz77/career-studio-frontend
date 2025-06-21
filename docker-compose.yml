@@ -16,3 +16,5 @@ services:
     ports:
       - "8080:80"
     restart: unless-stopped
+    volumes:
+      - /srv/frontend:/usr/share/nginx/html:ro
