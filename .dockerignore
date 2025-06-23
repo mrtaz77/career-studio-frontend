@@ -2,9 +2,6 @@
 node_modules
 package-lock.json
 
-# Vite output directory (in case it's different)
-dist
-
 # Logs and OS junk
 *.log
 npm-debug.log*
@@ -40,3 +37,7 @@ sonar-project.properties
 
 # Lint cache
 .eslintcache
+
+# Docker files
+Dockerfile
+docker-compose.yml

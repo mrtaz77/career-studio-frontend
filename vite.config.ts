@@ -5,7 +5,7 @@ import Inspect from 'vite-plugin-inspect';
 
 export default defineConfig(({ mode }) => ({
   server: {
-    host: '0.0.0.0', // <-- bind to all IPv4/IPv6
+    host: '0.0.0.0',
     port: 8080,
   },
   plugins: [react(), mode === 'development' && Inspect()].filter(Boolean),
@@ -13,5 +13,23 @@ export default defineConfig(({ mode }) => ({
     alias: {
       '@': path.resolve(__dirname, './src'),
     },
+  },
+  // Base path for subdirectory deployment
+  base: '/career-studio/',
+  build: {
+    outDir: 'dist',
+    sourcemap: mode === 'development',
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom'],
+          ui: ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-select'],
+        },
+      },
+    },
+  },
+  // Environment variable handling
+  define: {
+    __DEV__: mode === 'development',
   },
 }));

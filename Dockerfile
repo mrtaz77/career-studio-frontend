@@ -3,32 +3,33 @@ FROM node:24.2-alpine3.22 AS builder
 
 WORKDIR /app
 
-# Accept build-time Firebase + API envs
-ARG VITE_FIREBASE_API_KEY
-ARG VITE_FIREBASE_AUTH_DOMAIN
-ARG VITE_FIREBASE_PROJECT_ID
-ARG VITE_FIREBASE_STORAGE_BUCKET
-ARG VITE_FIREBASE_MESSAGING_SENDER_ID
-ARG VITE_FIREBASE_APP_ID
-ARG VITE_FIREBASE_MEASUREMENT_ID
-ARG VITE_API_BASE_URL
-
-ENV VITE_FIREBASE_API_KEY=$VITE_FIREBASE_API_KEY \
-    VITE_FIREBASE_AUTH_DOMAIN=$VITE_FIREBASE_AUTH_DOMAIN \
-    VITE_FIREBASE_PROJECT_ID=$VITE_FIREBASE_PROJECT_ID \
-    VITE_FIREBASE_STORAGE_BUCKET=$VITE_FIREBASE_STORAGE_BUCKET \
-    VITE_FIREBASE_MESSAGING_SENDER_ID=$VITE_FIREBASE_MESSAGING_SENDER_ID \
-    VITE_FIREBASE_APP_ID=$VITE_FIREBASE_APP_ID \
-    VITE_FIREBASE_MEASUREMENT_ID=$VITE_FIREBASE_MEASUREMENT_ID \
-    VITE_API_BASE_URL=$VITE_API_BASE_URL
-
+# Copy package files
 COPY package.json ./
 RUN npm install --ignore-scripts
 
+# Copy source code
 COPY . .
-RUN npm run build
 
-# Stage 2: Serve with nginx, as a non-root user
+# Create build script that reads secrets and builds
+RUN --mount=type=secret,id=firebase_api_key \
+    --mount=type=secret,id=firebase_auth_domain \
+    --mount=type=secret,id=firebase_project_id \
+    --mount=type=secret,id=firebase_storage_bucket \
+    --mount=type=secret,id=firebase_messaging_sender_id \
+    --mount=type=secret,id=firebase_app_id \
+    --mount=type=secret,id=firebase_measurement_id \
+    --mount=type=secret,id=api_base_url \
+    VITE_FIREBASE_API_KEY="$(cat /run/secrets/firebase_api_key)" \
+    VITE_FIREBASE_AUTH_DOMAIN="$(cat /run/secrets/firebase_auth_domain)" \
+    VITE_FIREBASE_PROJECT_ID="$(cat /run/secrets/firebase_project_id)" \
+    VITE_FIREBASE_STORAGE_BUCKET="$(cat /run/secrets/firebase_storage_bucket)" \
+    VITE_FIREBASE_MESSAGING_SENDER_ID="$(cat /run/secrets/firebase_messaging_sender_id)" \
+    VITE_FIREBASE_APP_ID="$(cat /run/secrets/firebase_app_id)" \
+    VITE_FIREBASE_MEASUREMENT_ID="$(cat /run/secrets/firebase_measurement_id)" \
+    VITE_API_BASE_URL="$(cat /run/secrets/api_base_url)" \
+    npm run build
+
+# Stage 2: Serve with nginx
 FROM nginx:alpine
 
 # Add non-root user and fix permissions
