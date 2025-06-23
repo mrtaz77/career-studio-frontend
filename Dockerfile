@@ -4,7 +4,7 @@ FROM node:24.2-alpine3.22 AS builder
 WORKDIR /app
 
 # Copy package files
-COPY package.json ./
+COPY package.json package-lock.json ./
 RUN npm install --ignore-scripts
 
 # Copy source code
