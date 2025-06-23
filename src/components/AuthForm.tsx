@@ -211,7 +211,7 @@ const AuthForm = ({ mode, onToggleMode, onSuccess }: AuthFormProps) => {
                   decoding="async"
                   data-nimg="1"
                   className="register_googleIcon_fvh_0"
-                  src="public\icons8-google.svg"
+                  src="icons8-google.svg"
                 />
                 Sign in with Google
               </>
