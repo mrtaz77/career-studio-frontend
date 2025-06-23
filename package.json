@@ -10,7 +10,8 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "jest --passWithNoTests",
-    "prepare": "husky"
+    "prepare": "husky",
+    "build:prod": "vite build --mode production"
   },
   "dependencies": {
     "@radix-ui/react-accordion": "^1.2.0",
