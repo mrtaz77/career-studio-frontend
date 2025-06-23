@@ -14,8 +14,8 @@ export default defineConfig(({ mode }) => ({
       '@': path.resolve(__dirname, './src'),
     },
   },
-  // Base path for subdirectory deployment
-  base: '/career-studio/',
+  // Base path - only for production Docker deployment
+  base: mode === 'production' ? '/career-studio/' : '/',
   build: {
     outDir: 'dist',
     sourcemap: mode === 'development',
