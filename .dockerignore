@@ -10,7 +10,8 @@ yarn-error.log*
 
 # Environment/configs
 .env
-.env.*
+.env.development
+!.env.production
 
 # Git & Editor metadata
 .git
