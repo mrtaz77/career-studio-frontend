@@ -71,8 +71,8 @@ jobs:
             echo -n "${{ secrets.VITE_FIREBASE_MEASUREMENT_ID }}" > secrets/firebase_measurement_id
             echo -n "/api" > secrets/api_base_url
 
-            docker-compose pull frontend
-            docker-compose up -d frontend
+            docker compose pull frontend
+            docker compose up -d frontend
 
             # Prune unused images
             docker image prune -f
