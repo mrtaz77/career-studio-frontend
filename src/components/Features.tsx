@@ -26,10 +26,10 @@ const Features = () => {
     <div id="features" className="py-16 bg-white">
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+          <h2 className="text-3xl md:text-4xl font-bold text-[#6254a9] mb-4">
             Everything You Need To Land That Job
           </h2>
-          <p className="text-gray-600 max-w-2xl mx-auto">
+          <p className="text-[#7764a0] max-w-2xl mx-auto">
             Career Studio provides all the tools you need to build an impressive online presence and
             get noticed by employers.
           </p>
@@ -44,8 +44,8 @@ const Features = () => {
               <div className="bg-jobathon-50 rounded-full w-16 h-16 flex items-center justify-center mb-4">
                 {feature.icon}
               </div>
-              <h3 className="text-xl font-bold mb-3 text-gray-900">{feature.title}</h3>
-              <p className="text-gray-600">{feature.description}</p>
+              <h3 className="text-xl font-bold mb-3 text-[#6254a9]">{feature.title}</h3>
+              <p className="text-[#7764a0]">{feature.description}</p>
             </div>
           ))}
         </div>
@@ -53,13 +53,17 @@ const Features = () => {
         <div className="mt-16 bg-jobathon-50 rounded-lg p-8">
           <div className="flex flex-col md:flex-row items-center">
             <div className="md:w-2/3 mb-6 md:mb-0 md:pr-6">
-              <h3 className="text-2xl font-bold mb-4 text-gray-900">Ready to boost your career?</h3>
-              <p className="text-gray-600 mb-4">
+              <h3 className="text-2xl font-bold mb-4 text-[#6254a9]">
+                Ready to boost your career?
+              </h3>
+              <p className="text-[#7764a0] mb-4">
                 Join thousands of job seekers who have used Career Studio to land their dream jobs.
                 Our platform is designed to help you showcase your skills and experience in the best
                 possible way.
               </p>
-              <button className="btn-primary">Get Started Now</button>
+              <button className="btn-primary bg-[#6254a9] hover:bg-[#BFA3FF]">
+                Get Started Now
+              </button>
             </div>
             <div className="md:w-1/3">
               <div className="relative">

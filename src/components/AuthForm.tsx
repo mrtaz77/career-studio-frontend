@@ -60,6 +60,7 @@ const AuthForm = ({ mode, onToggleMode, onSuccess }: AuthFormProps) => {
     setIsSocialLoading('google');
     try {
       await loginWithGoogle();
+
       navigate('/dashboard');
       if (onSuccess) {
         onSuccess();
@@ -95,7 +96,7 @@ const AuthForm = ({ mode, onToggleMode, onSuccess }: AuthFormProps) => {
       <form onSubmit={handleSubmit} className="space-y-4">
         {mode === 'signup' && (
           <div className="space-y-2">
-            <Label htmlFor="name">Full Name</Label>
+            <Label htmlFor="name">User Name</Label>
             <Input
               id="name"
               name="name"
