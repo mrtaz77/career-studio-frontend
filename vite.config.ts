@@ -15,7 +15,7 @@ export default defineConfig(({ mode }) => ({
     },
   },
   // Base path - only for production Docker deployment
-  base: mode === 'production' ? '/career-studio/' : '/',
+  base: process.env.VITE_BASE_URL ?? '/',
   build: {
     outDir: 'dist',
     sourcemap: mode === 'development',
