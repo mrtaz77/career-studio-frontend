@@ -64,12 +64,13 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}
           key:      ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            cd ~/frontend || {
-              mkdir ~/frontend
-              cd ~/frontend
+            mkdir -p ~/frontend
+            cd ~/frontend
+
+            if [ ! -d ".git" ]; then
               git init
               git remote add origin https://github.com/mrtaz77/career-studio-frontend.git
-            }
+            fi
 
             git fetch origin
             git reset --hard origin/main
