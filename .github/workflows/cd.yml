@@ -13,11 +13,13 @@ jobs:
     name: Deploy Frontend to Azure VM
     runs-on: ubuntu-latest
 
+    env:
+      DOCKER_BUILDKIT: 1  # For secret mounts
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 1) Azure login via OIDC
       - name: Azure Login
         uses: azure/login@v1
         with:
@@ -25,19 +27,36 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      # 2) ACR login
       - name: Login to ACR
         run: az acr login --name ${{ secrets.ACR_NAME }}
 
-      # 3) Build and push Docker image
-      - name: Build & Push Frontend Image
+      - name: Prepare secret files for secure build
+        run: |
+          echo "${{ secrets.VITE_FIREBASE_API_KEY }}" > firebase_api_key
+          echo "${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}" > firebase_auth_domain
+          echo "${{ secrets.VITE_FIREBASE_PROJECT_ID }}" > firebase_project_id
+          echo "${{ secrets.VITE_FIREBASE_STORAGE_BUCKET }}" > firebase_storage_bucket
+          echo "${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }}" > firebase_messaging_sender_id
+          echo "${{ secrets.VITE_FIREBASE_APP_ID }}" > firebase_app_id
+          echo "${{ secrets.VITE_FIREBASE_MEASUREMENT_ID }}" > firebase_measurement_id
+          echo "/api" > api_base_url
+
+      - name: Build & Push Frontend Docker Image securely
         env:
           IMAGE_TAG: ${{ secrets.ACR_LOGIN_SERVER }}/frontend:${{ github.sha }}
         run: |
-          docker build -t $IMAGE_TAG .
+          docker build -t $IMAGE_TAG \
+            --secret id=firebase_api_key,src=firebase_api_key \
+            --secret id=firebase_auth_domain,src=firebase_auth_domain \
+            --secret id=firebase_project_id,src=firebase_project_id \
+            --secret id=firebase_storage_bucket,src=firebase_storage_bucket \
+            --secret id=firebase_messaging_sender_id,src=firebase_messaging_sender_id \
+            --secret id=firebase_app_id,src=firebase_app_id \
+            --secret id=firebase_measurement_id,src=firebase_measurement_id \
+            --secret id=api_base_url,src=api_base_url \
+            .
           docker push $IMAGE_TAG
 
-      # 4) SSH into VM and deploy
       - name: SSH & Deploy to Azure VM
         uses: appleboy/ssh-action@v0.1.6
         with:
@@ -45,54 +64,19 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}
           key:      ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            cd ~/  # or wherever you keep your code
-            if [ ! -d "frontend" ]; then
-              mkdir frontend
-              cd frontend
+            cd ~/frontend || {
+              mkdir ~/frontend
+              cd ~/frontend
               git init
               git remote add origin https://github.com/mrtaz77/career-studio-frontend.git
-            else
-              cd frontend
-            fi
+            }
 
             git fetch origin
             git reset --hard origin/main
 
-            # Write the .env.production
-            cat <<EOF > .env.production
-            ENVIRONMENT=production
-            VITE_API_BASE_URL=/api
-            VITE_BASE_URL=/
-            VITE_FIREBASE_API_KEY=${{ secrets.VITE_FIREBASE_API_KEY }}
-            VITE_FIREBASE_AUTH_DOMAIN=${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}
-            VITE_FIREBASE_PROJECT_ID=${{ secrets.VITE_FIREBASE_PROJECT_ID }}
-            VITE_FIREBASE_STORAGE_BUCKET=${{ secrets.VITE_FIREBASE_STORAGE_BUCKET }}
-            VITE_FIREBASE_MESSAGING_SENDER_ID=${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }}
-            VITE_FIREBASE_APP_ID=${{ secrets.VITE_FIREBASE_APP_ID }}
-            VITE_FIREBASE_MEASUREMENT_ID=${{ secrets.VITE_FIREBASE_MEASUREMENT_ID }}
-            EOF
-
-            # Ensure secrets directory exists and populate it with secret files
-            if [ -d "secrets" ]; then
-              rm -rf secrets/*
-            else
-              mkdir -p secrets
-            fi
-            echo -n "${{ secrets.VITE_FIREBASE_API_KEY }}" > secrets/firebase_api_key
-            echo -n "${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}" > secrets/firebase_auth_domain
-            echo -n "${{ secrets.VITE_FIREBASE_PROJECT_ID }}" > secrets/firebase_project_id
-            echo -n "${{ secrets.VITE_FIREBASE_STORAGE_BUCKET }}" > secrets/firebase_storage_bucket
-            echo -n "${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }}" > secrets/firebase_messaging_sender_id
-            echo -n "${{ secrets.VITE_FIREBASE_APP_ID }}" > secrets/firebase_app_id
-            echo -n "${{ secrets.VITE_FIREBASE_MEASUREMENT_ID }}" > secrets/firebase_measurement_id
-            echo -n "/api" > secrets/api_base_url
-
-            # Update docker-compose.yml image tag
+            # Update image tag in docker-compose.yml
             sed -i "s|image:.*frontend:.*|image: ${{ secrets.ACR_LOGIN_SERVER }}/frontend:${{ github.sha }}|g" docker-compose.yml
 
-            # Restart service
             docker compose pull frontend
             docker compose up -d frontend
-
-            # Clean up unused images
             docker image prune -f
