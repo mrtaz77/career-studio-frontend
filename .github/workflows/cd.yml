@@ -25,25 +25,27 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      # 2) ACR login via Azure CLI
+      # 2) ACR login
       - name: Login to ACR
         run: az acr login --name ${{ secrets.ACR_NAME }}
 
-      # 3) Build and push Docker image to ACR
+      # 3) Build and push Docker image
       - name: Build & Push Frontend Image
+        env:
+          IMAGE_TAG: ${{ secrets.ACR_LOGIN_SERVER }}/frontend:${{ github.sha }}
         run: |
-          IMAGE=${{ secrets.ACR_LOGIN_SERVER }}/frontend:${{ github.sha }}
-          docker build -t $IMAGE .
-          docker push $IMAGE
+          docker build -t $IMAGE_TAG .
+          docker push $IMAGE_TAG
 
-      # 4) SSH into VM and deploy with docker-compose
-      - name: SSH & Deploy
+      # 4) SSH into VM and deploy
+      - name: SSH & Deploy to Azure VM
         uses: appleboy/ssh-action@v0.1.6
         with:
           host:     ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USERNAME }}
           key:      ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
+            cd ~/  # or wherever you keep your code
             if [ ! -d "frontend" ]; then
               mkdir frontend
               cd frontend
@@ -53,11 +55,10 @@ jobs:
               cd frontend
             fi
 
-            # Pull the latest changes from the repository
             git fetch origin
             git reset --hard origin/main
 
-            # Create the .env.production file with environment variables
+            # Write the .env.production
             cat <<EOF > .env.production
             ENVIRONMENT=production
             VITE_API_BASE_URL=/api
@@ -70,7 +71,6 @@ jobs:
             VITE_FIREBASE_APP_ID=${{ secrets.VITE_FIREBASE_APP_ID }}
             VITE_FIREBASE_MEASUREMENT_ID=${{ secrets.VITE_FIREBASE_MEASUREMENT_ID }}
             EOF
-            chmod 600 .env.production
 
             # Ensure secrets directory exists and populate it with secret files
             if [ -d "secrets" ]; then
@@ -87,9 +87,12 @@ jobs:
             echo -n "${{ secrets.VITE_FIREBASE_MEASUREMENT_ID }}" > secrets/firebase_measurement_id
             echo -n "/api" > secrets/api_base_url
 
-            # Pull the latest Docker image and restart the frontend service
+            # Update docker-compose.yml image tag
+            sed -i "s|image:.*frontend:.*|image: ${{ secrets.ACR_LOGIN_SERVER }}/frontend:${{ github.sha }}|g" docker-compose.yml
+
+            # Restart service
             docker compose pull frontend
             docker compose up -d frontend
 
-            # Prune unused Docker images to save space
+            # Clean up unused images
             docker image prune -f
