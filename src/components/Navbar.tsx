@@ -39,7 +39,7 @@ const Navbar = ({ openAuthDialog }: NavbarProps) => {
     <nav className="bg-white py-4 border-b border-gray-200">
       <div className="container mx-auto px-4 flex justify-between items-center">
         <Link to="/" className="flex items-center">
-          <span className="text-jobathon-700 font-display font-bold text-2xl">Career Studio</span>
+          <span className="text-[#6254a9] font-display font-bold text-2xl">Career Studio</span>
         </Link>
 
         {/* Desktop Navigation */}
@@ -96,13 +96,13 @@ const Navbar = ({ openAuthDialog }: NavbarProps) => {
             <div className="space-x-3">
               <Button
                 variant="outline"
-                className="border-jobathon-600 text-jobathon-600 hover:bg-jobathon-50"
+                className="border-[#6254a9] text-[#6254a9] hover:bg-[#BFA3FF]"
                 onClick={() => openAuthDialog && openAuthDialog('login')}
               >
                 Login
               </Button>
               <Button
-                className="bg-jobathon-600 hover:bg-jobathon-700"
+                className="bg-[#6254a9] hover:bg-[#BFA3FF]"
                 onClick={() => openAuthDialog && openAuthDialog('signup')}
               >
                 Sign up

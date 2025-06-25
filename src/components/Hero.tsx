@@ -6,20 +6,20 @@ const Hero = () => {
       <div className="container mx-auto px-4">
         <div className="flex flex-col md:flex-row items-center">
           <div className="md:w-1/2 md:pr-8 mb-8 md:mb-0">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-4">
-              Build Your <span className="text-jobathon-600">Dream Career</span> With Confidence
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-[#C5BAFF] mb-4">
+              Build Your <span className="text-[#6254a9]">Dream Career</span> With Confidence
             </h1>
-            <p className="text-lg text-gray-600 mb-8">
+            <p className="text-lg text-[#7764a0] mb-8">
               Create stunning portfolios and smart CVs that get you noticed. Stand out from the
               crowd with Career Studios powerful career tools.
             </p>
             <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4">
-              <Button className="bg-jobathon-600 hover:bg-jobathon-700 text-white px-8 py-6 text-lg">
+              <Button className="bg-[#6254a9] hover:bg-[#BFA3FF] text-white px-8 py-6 text-lg">
                 Get Started
               </Button>
               <Button
                 variant="outline"
-                className="border-jobathon-600 text-jobathon-600 hover:bg-jobathon-50 px-8 py-6 text-lg"
+                className="border-[#C5BAFF] text-[#C5BAFF] hover:bg-jobathon-50 px-8 py-6 text-lg"
               >
                 Learn More
               </Button>
