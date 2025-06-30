@@ -13,7 +13,7 @@ import globals from 'globals';
 
 export default defineConfig([
   {
-    ignores: ['eslint.config.js', 'node_modules', 'dist', 'build'],
+    ignores: ['eslint.config.js', 'babel.config.js', 'node_modules', 'dist', 'build'],
 
     // Run on all JS/TS files
     files: ['**/*.{js,ts,jsx,tsx}'],
