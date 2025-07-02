@@ -89,36 +89,6 @@ export const ProfileCompletionDialog = ({
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  // const handleSubmit = async (e: React.FormEvent) => {
-  //   e.preventDefault();
-  //   setLoading(true);
-
-  //   try {
-  //     // Save profile data to localStorage for now
-  //     localStorage.setItem('userProfile', JSON.stringify({
-  //       ...formData,
-  //       userId: currentUser?.uid,
-  //       completedAt: new Date().toISOString()
-  //     }));
-
-  //     toast({
-  //       title: "Profile completed!",
-  //       description: "Your profile information has been saved successfully.",
-  //       variant: "default",
-  //     });
-
-  //     onClose();
-  //   } catch (error) {
-  //     toast({
-  //       title: "Error",
-  //       description: "Failed to save profile information.",
-  //       variant: "destructive",
-  //     });
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);

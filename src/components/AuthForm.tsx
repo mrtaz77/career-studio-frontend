@@ -22,7 +22,7 @@ const AuthForm = ({ mode, onToggleMode, onSuccess }: AuthFormProps) => {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSocialLoading, setIsSocialLoading] = useState<string | null>(null);
-  const { login, signup, loginWithGoogle, loginWithFacebook } = useAuth();
+  const { login, signup, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -51,9 +51,6 @@ const AuthForm = ({ mode, onToggleMode, onSuccess }: AuthFormProps) => {
     } finally {
       setIsSubmitting(false);
     }
-
-    console.log('Form submitted with:', formData);
-    // In a real app, you'd connect this to your authentication system
   };
 
   const handleGoogleLogin = async () => {
