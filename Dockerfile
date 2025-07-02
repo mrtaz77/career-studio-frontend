@@ -8,7 +8,9 @@ COPY package.json package-lock.json ./
 RUN npm install --ignore-scripts
 
 # Copy source code
-COPY . .
+COPY vite.config.ts index.html tailwind.config.ts postcss.config.js tsconfig.json tsconfig.app.json ./
+COPY src/ ./src
+COPY public/ ./public
 
 # Create build script that reads secrets and builds
 RUN --mount=type=secret,id=firebase_api_key \
