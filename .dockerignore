@@ -37,7 +37,3 @@ sonar-project.properties
 
 # Lint cache
 .eslintcache
-
-# Docker files
-Dockerfile
-docker-compose.yml
