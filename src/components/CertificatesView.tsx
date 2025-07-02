@@ -4,7 +4,13 @@ import { Button } from '@/components/ui/button';
 import { Edit, Trash2, Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { cert_img } from '../utils/constants';
@@ -285,6 +291,11 @@ export const CertificatesView = () => {
             <DialogTitle>
               {editingCertificate ? 'Edit Certificate' : 'Add Certificate(s)'}
             </DialogTitle>
+            <DialogDescription>
+              {editingCertificate
+                ? 'Update the certificate information below.'
+                : 'Add one or more certificates to your profile.'}
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             {editingCertificate ? (
