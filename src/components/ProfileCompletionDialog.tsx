@@ -10,6 +10,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
 import type { User as FirebaseUser } from 'firebase/auth';
 import { useEffect } from 'react';
@@ -28,6 +29,18 @@ export const ProfileCompletionDialog = ({
 }: ProfileCompletionDialogProps) => {
   //console.log("ProfileCompletionDialog rendered with currentUser:", currentUser);
   const [profile, setProfile] = useState(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string>('');
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [_uploadRetries, _setUploadRetries] = useState(0);
+  const MAX_UPLOAD_RETRIES = 2;
+
+  // Debug logging
+  useEffect(() => {
+    // console.log('ProfileCompletionDialog - uploadingImage:', uploadingImage);
+    // console.log('ProfileCompletionDialog - selectedFile:', selectedFile?.name);
+    // console.log('ProfileCompletionDialog - imagePreview length:', imagePreview?.length);
+  }, [uploadingImage, selectedFile, imagePreview]);
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -48,17 +61,23 @@ export const ProfileCompletionDialog = ({
           const profileData = await response.json();
           setProfile(profileData);
           setFormData({
+            username: profileData?.username || '',
             full_name: profileData?.full_name || '',
             address: profileData?.address || '',
             contactNumber: profileData?.phone || '',
             jobTitle: profileData?.jobTitle || '',
             company: profileData?.company || '',
+            imgUrl: profileData?.img || '',
           });
+          // Set initial image preview if user already has a profile picture
+          if (profileData?.img) {
+            setImagePreview(profileData.img);
+          }
         } else {
           throw new Error('Failed to fetch profile');
         }
       } catch (error) {
-        console.error('Error fetching user profile:', error);
+        // console.error('Error fetching user profile:', error);
         toast({
           title: 'Error',
           description: 'Failed to load profile information.',
@@ -75,18 +94,225 @@ export const ProfileCompletionDialog = ({
   // console.log("Fetched profile:", profile);
   //console.log("name:", profile?.full_name);
   const [formData, setFormData] = useState({
+    username: profile?.username || '',
     full_name: profile?.full_name || '',
     address: profile?.address || '',
     contactNumber: profile?.phone || '',
     jobTitle: profile?.jobTitle || '',
     company: profile?.company || '',
+    imgUrl: profile?.img || '',
   });
   //console.log("formData:", formData);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+  // const API_BASE_URL = import.meta.env.VITE_API_BASE_URL; // Unused duplicate
+
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Reset any previous errors
+    _setUploadRetries(0);
+
+    // Validate file type - be more specific about allowed types
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowedTypes.includes(file.type.toLowerCase())) {
+      toast({
+        title: 'Invalid file type',
+        description: 'Please select a JPG, PNG, GIF, or WebP image.',
+        variant: 'destructive',
+      });
+      // Reset file input
+      e.target.value = '';
+      return;
+    }
+
+    // Validate file size (1MB max for better performance)
+    const maxSize = 1 * 1024 * 1024; // 1MB
+    if (file.size > maxSize) {
+      toast({
+        title: 'File too large',
+        description: 'Please select an image smaller than 1MB.',
+        variant: 'destructive',
+      });
+      // Reset file input
+      e.target.value = '';
+      return;
+    }
+
+    setSelectedFile(file);
+
+    // Create preview with error handling
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const result = reader.result as string;
+        setImagePreview(result);
+
+        toast({
+          title: 'Image selected',
+          description: `${file.name} ready for upload.`,
+          variant: 'default',
+        });
+      } catch (_error) {
+        // console.error('Error creating image preview:', _error);
+        toast({
+          title: 'Preview failed',
+          description: 'Could not create image preview, but upload will still work.',
+          variant: 'destructive',
+        });
+      }
+    };
+
+    reader.onerror = () => {
+      toast({
+        title: 'File read error',
+        description: 'Could not read the selected file. Please try another image.',
+        variant: 'destructive',
+      });
+      setSelectedFile(null);
+      e.target.value = '';
+    };
+
+    reader.readAsDataURL(file);
+  };
+
+  const uploadImageToBackend = async (retryCount = 0): Promise<string | null> => {
+    if (!selectedFile || !currentUser) return null;
+
+    setUploadingImage(true);
+    try {
+      // Get authentication token
+      const token = await currentUser.getIdToken(true);
+      if (!token) {
+        throw new Error('Authentication failed');
+      }
+
+      // Create FormData for file upload
+      const formData = new FormData();
+      formData.append('image', selectedFile);
+      formData.append('userId', currentUser.uid);
+      formData.append('folder', 'profile-pictures');
+
+      // console.log('Uploading image to backend...', {
+      //   fileName: selectedFile.name,
+      //   fileSize: selectedFile.size,
+      //   fileType: selectedFile.type
+      // });
+
+      // Send to backend API
+      const response = await fetch(`${API_BASE_URL}/api/v1/users/upload-image`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          // Don't set Content-Type header - let browser set it for FormData
+        },
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      const imageUrl = result.imageUrl || result.url || result.downloadUrl;
+
+      if (!imageUrl) {
+        throw new Error('No image URL returned from server');
+      }
+
+      // Reset retry count on success
+      _setUploadRetries(0);
+
+      toast({
+        title: 'Success!',
+        description: 'Profile picture uploaded successfully.',
+        variant: 'default',
+      });
+
+      return imageUrl;
+    } catch (error: unknown) {
+      // console.error(`Backend upload error (attempt ${retryCount + 1}):`, error);
+
+      // Retry logic for network/server errors
+      if (
+        retryCount < MAX_UPLOAD_RETRIES &&
+        error instanceof Error &&
+        (error.name === 'NetworkError' ||
+          error.message?.includes('network') ||
+          error.message?.includes('timeout') ||
+          error.message?.includes('500') ||
+          error.message?.includes('502') ||
+          error.message?.includes('503'))
+      ) {
+        _setUploadRetries(retryCount + 1);
+
+        toast({
+          title: 'Upload failed',
+          description: `Retrying upload... (${retryCount + 1}/${MAX_UPLOAD_RETRIES})`,
+          variant: 'default',
+        });
+
+        // Wait before retrying
+        await new Promise((resolve) => setTimeout(resolve, 2000 * (retryCount + 1)));
+
+        return uploadImageToBackend(retryCount + 1);
+      }
+
+      // If backend upload fails, fall back to base64
+      // console.log('Backend upload failed, falling back to base64...');
+
+      try {
+        const base64String = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(selectedFile);
+        });
+
+        toast({
+          title: 'Using fallback method',
+          description: 'Image will be stored as base64 data.',
+          variant: 'default',
+        });
+
+        return base64String;
+      } catch (_base64Error) {
+        // console.error('Base64 conversion also failed:', _base64Error);
+
+        let errorMessage = 'Failed to upload image. Please try again.';
+
+        if (error instanceof Error) {
+          if (error.message?.includes('Authentication failed')) {
+            errorMessage = 'Please sign in again and try uploading.';
+          } else if (error.message?.includes('413')) {
+            errorMessage = 'Image file is too large. Please select a smaller image.';
+          } else if (error.message?.includes('415')) {
+            errorMessage = 'Unsupported file type. Please select a JPG, PNG, or GIF image.';
+          } else if (error.message?.includes('401')) {
+            errorMessage = 'Authentication failed. Please sign in again.';
+          } else if (error.message?.includes('404')) {
+            errorMessage = 'Upload service not available. Please try again later.';
+          }
+        }
+
+        toast({
+          title: 'Upload failed',
+          description: errorMessage,
+          variant: 'destructive',
+        });
+
+        _setUploadRetries(0);
+        return null;
+      }
+    } finally {
+      setUploadingImage(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -98,12 +324,44 @@ export const ProfileCompletionDialog = ({
         throw new Error('No user is signed in');
       }
 
+      // Upload image if a new one was selected
+      let imageUrl = formData.imgUrl;
+      if (selectedFile) {
+        // Set a timeout for the upload process
+        const uploadPromise = uploadImageToBackend();
+        const timeoutPromise = new Promise<string | null>((resolve) => {
+          setTimeout(() => {
+            // console.log('Upload timeout reached, proceeding without image');
+            resolve(null);
+          }, 15000); // 15 second timeout (reduced for better UX)
+        });
+
+        const uploadedUrl = await Promise.race([uploadPromise, timeoutPromise]);
+
+        if (uploadedUrl) {
+          imageUrl = uploadedUrl;
+        } else {
+          // Image upload failed or timed out, but allow user to proceed without profile picture
+          toast({
+            title: 'Proceeding without profile picture',
+            description: 'Your profile will be saved without the new image.',
+            variant: 'default',
+          });
+          // Reset the selected file and preview
+          setSelectedFile(null);
+          setImagePreview(formData.imgUrl || '');
+          // Reset file input
+          const fileInput = document.getElementById('profilePicture') as HTMLInputElement;
+          if (fileInput) fileInput.value = '';
+        }
+      }
+
       // 1. Grab the Firebase ID token to authenticate
       const idToken = await currentUser.getIdToken(/* forceRefresh = */ false);
-      //console.log("ID Token:", idToken);
+      // console.log("ID Token:", idToken);
       // 2. Build the payload — only include fields the API expects
       const payload: {
-        //username?: string | null
+        username?: string | null;
         full_name?: string | null;
         img?: string | null;
         address?: string | null;
@@ -111,9 +369,9 @@ export const ProfileCompletionDialog = ({
       } = {};
 
       // Only send the keys the user actually filled out:
-      //if (formData.username)  payload.username  = formData.username
+      if (formData.username) payload.username = formData.username;
       if (formData?.full_name) payload.full_name = formData.full_name;
-      //if (formData.imgUrl)    payload.img       = formData.imgUrl
+      if (imageUrl) payload.img = imageUrl;
       if (formData?.address) payload.address = formData.address;
       if (formData?.contactNumber) payload.phone = formData.contactNumber;
 
@@ -142,7 +400,7 @@ export const ProfileCompletionDialog = ({
 
       onClose();
     } catch (error: unknown) {
-      console.error('Profile update error:', error);
+      // console.error('Profile update error:', error);
       toast({
         title: 'Error',
         description: error instanceof Error ? error.message : 'Failed to save profile information.',
@@ -150,12 +408,13 @@ export const ProfileCompletionDialog = ({
       });
     } finally {
       setLoading(false);
+      setUploadingImage(false); // Ensure upload state is also reset
     }
   };
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Complete Your Profile</DialogTitle>
           <DialogDescription>
@@ -164,6 +423,69 @@ export const ProfileCompletionDialog = ({
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Profile Picture Upload */}
+          <div className="flex flex-col items-center space-y-3">
+            <Label>Profile Picture (Optional)</Label>
+            <div className="relative">
+              <Avatar className="w-24 h-24 border-2 border-gray-200">
+                <AvatarImage src={imagePreview} alt="Profile preview" />
+                <AvatarFallback className="text-xl bg-gray-100">
+                  {formData.full_name ? formData.full_name.charAt(0).toUpperCase() : 'U'}
+                </AvatarFallback>
+              </Avatar>
+              {uploadingImage && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 rounded-full">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+                </div>
+              )}
+            </div>
+            <Input
+              id="profilePicture"
+              type="file"
+              accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+              onChange={handleFileSelect}
+              className="max-w-xs"
+              disabled={uploadingImage || loading}
+            />
+            {selectedFile && (
+              <div className="flex flex-col items-center space-y-2">
+                <p className="text-sm text-green-600">✓ Selected: {selectedFile.name}</p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setSelectedFile(null);
+                    setImagePreview(formData.imgUrl || '');
+                    // Reset file input
+                    const fileInput = document.getElementById('profilePicture') as HTMLInputElement;
+                    if (fileInput) fileInput.value = '';
+                  }}
+                  className="text-xs"
+                  disabled={uploadingImage || loading}
+                >
+                  Remove Selected Image
+                </Button>
+              </div>
+            )}
+            <div className="text-center">
+              <p className="text-xs text-gray-500">JPG, PNG, GIF, WebP supported</p>
+              <p className="text-xs text-gray-500">Maximum file size: 1MB</p>
+              {uploadingImage && <p className="text-xs text-blue-600 mt-1">Uploading image...</p>}
+            </div>
+          </div>
+
+          <div>
+            <Label htmlFor="username">Username</Label>
+            <Input
+              id="username"
+              value={formData?.username}
+              onChange={(e) => handleInputChange('username', e.target.value)}
+              placeholder="Enter username"
+              required
+            />
+          </div>
+
           <div>
             <Label htmlFor="full_name">Full Name</Label>
             <Input
@@ -218,10 +540,19 @@ export const ProfileCompletionDialog = ({
           </div>
 
           <div className="flex space-x-2 pt-4">
-            <Button type="submit" disabled={loading} className="flex-1">
-              {loading ? 'Saving...' : 'Complete Profile'}
+            <Button type="submit" disabled={loading || uploadingImage} className="flex-1">
+              {uploadingImage
+                ? 'Uploading Image...'
+                : loading
+                  ? 'Saving Profile...'
+                  : 'Complete Profile'}
             </Button>
-            <Button type="button" variant="outline" onClick={onClose}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onClose}
+              disabled={loading || uploadingImage}
+            >
               Skip for now
             </Button>
           </div>
