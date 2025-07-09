@@ -194,9 +194,9 @@ const LogIn = () => {
             >
               {isSignIn ? 'Sign In' : 'Sign Up'}
             </button>
-            <p className="text-white content-center ">
-              <h1 className="ml-28">Or</h1>
-            </p>
+            <div className="text-white content-center">
+              <span className="ml-28">Or</span>
+            </div>
 
             <p className="text-white cursor-pointer" onClick={toggleSignIn}>
               {isSignIn ? 'New to MovieGpt48 ? Sign Up' : 'Already registered? Sign In'}

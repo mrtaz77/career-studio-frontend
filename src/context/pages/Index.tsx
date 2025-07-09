@@ -7,7 +7,7 @@ import Features from '@/components/Features';
 import Testimonials from '@/components/Testimonials';
 import Footer from '@/components/Footer';
 import AuthForm from '@/components/AuthForm';
-import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { useAuth } from '@/context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
@@ -71,9 +71,6 @@ const Index = () => {
 
       <Dialog open={authDialogOpen} onOpenChange={setAuthDialogOpen}>
         <DialogContent className="sm:max-w-md">
-          <DialogTitle className="sr-only">
-            {authMode === 'login' ? 'Login' : 'Sign Up'}
-          </DialogTitle>
           <AuthForm mode={authMode} onToggleMode={toggleAuthMode} onSuccess={closeAuthDialog} />
         </DialogContent>
       </Dialog>

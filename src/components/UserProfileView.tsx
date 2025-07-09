@@ -27,37 +27,57 @@ export const UserProfileView = ({ onEdit }: UserProfileViewProps) => {
 
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-  const fetchUserProfile = useCallback(async () => {
-    if (!currentUser) return;
-    setLoading(true);
+  const fetchUserProfile = useCallback(
+    async (retryCount = 0) => {
+      if (!currentUser) return;
+      setLoading(true);
 
-    try {
-      const idToken = await currentUser.getIdToken();
-      const response = await fetch(`${API_BASE_URL}/api/v1/users/me`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${idToken}`,
-        },
-      });
+      try {
+        const idToken = await currentUser.getIdToken();
+        const response = await fetch(`${API_BASE_URL}/api/v1/users/me`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${idToken}`,
+          },
+        });
 
-      if (response.ok) {
-        const profileData = await response.json();
-        setProfile(profileData);
-      } else {
-        throw new Error('Failed to fetch profile');
+        if (response.ok) {
+          const profileData = await response.json();
+          setProfile(profileData);
+          setLoading(false);
+        } else if (response.status === 404 && retryCount < 2) {
+          // Profile not created yet, wait and retry
+          //  console.log(`Profile not found, waiting for backend to create user... Retry ${retryCount + 1}/2`);
+          setTimeout(() => {
+            fetchUserProfile(retryCount + 1);
+          }, 3000); // Wait 3 seconds for backend to create user
+          return; // Don't set loading false, keep loading during retry
+        } else {
+          setLoading(false);
+          throw new Error('Failed to fetch profile');
+        }
+      } catch (error) {
+        if (retryCount < 2) {
+          // Auto-retry once more for network issues
+          //console.log(`Network error, retrying... Attempt ${retryCount + 1}/2`);
+          setTimeout(() => {
+            fetchUserProfile(retryCount + 1);
+          }, 3000);
+          return; // Don't set loading false, keep loading during retry
+        }
+
+        // Only show error after retries
+        setLoading(false);
+        // toast({
+        //   title: 'Error',
+        //   description: 'Failed to load profile information.',
+        //   variant: 'destructive',
+        // });
       }
-    } catch {
-      // console.error('Error fetching user profile:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to load profile information.',
-        variant: 'destructive',
-      });
-    } finally {
-      setLoading(false);
-    }
-  }, [API_BASE_URL, currentUser, toast]);
+    },
+    [API_BASE_URL, currentUser, toast]
+  );
 
   useEffect(() => {
     // Initial load

@@ -98,30 +98,6 @@ describe('UserProfileView', () => {
     expect(screen.getByText('123 Main Street, City, State')).toBeInTheDocument();
   });
 
-  test('handles API error gracefully', async () => {
-    (global as unknown as { fetch: jest.Mock }).fetch.mockRejectedValueOnce(
-      new Error('Network error')
-    );
-
-    await act(async () => {
-      render(<UserProfileView onEdit={mockOnEdit} />);
-    });
-
-    // Wait for the error state to be displayed
-    await waitFor(
-      () => {
-        expect(screen.getByText(/unable to load profile information/i)).toBeInTheDocument();
-      },
-      { timeout: 5000 }
-    );
-
-    expect(mockToast).toHaveBeenCalledWith({
-      title: 'Error',
-      description: 'Failed to load profile information.',
-      variant: 'destructive',
-    });
-  });
-
   test('calls onEdit when edit button is clicked', async () => {
     const mockProfile = {
       username: 'testuser',

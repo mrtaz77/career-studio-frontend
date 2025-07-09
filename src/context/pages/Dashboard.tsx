@@ -80,8 +80,8 @@ const Dashboard = () => {
     try {
       await logout();
       navigate('/');
-    } catch (error) {
-      console.error('Logout error:', error);
+    } catch (_error) {
+      console.error('Logout error:', _error);
     }
   };
 
@@ -229,7 +229,7 @@ const Dashboard = () => {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Avatar className="cursor-pointer">
-                  <AvatarImage src={user?.photoURL || ''} />
+                  <AvatarImage src={currentUser?.photoURL || ''} />
                   <AvatarFallback className="bg-jobathon-100 text-jobathon-600 font-medium">
                     {currentUser?.displayName
                       ? currentUser?.displayName.charAt(0).toUpperCase()
@@ -262,15 +262,15 @@ const Dashboard = () => {
           <div className="lg:w-1/4">
             <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
               <div className="p-6 border-b border-gray-200">
-                {/* <div className="flex items-center space-x-3">
+                <div className="flex items-center space-x-3">
                   <div className="h-14 w-14 rounded-full bg-jobathon-100 flex items-center justify-center text-jobathon-700 text-xl font-medium">
                     {currentUser?.displayName?.charAt(0)}
                   </div>
                   <div>
                     <h3 className="font-medium">{currentUser?.displayName}</h3>
-                    <p className="text-sm text-gray-500">{currentUser?.email}</p>
+                    <p className="text-sm text-gray-500">{user?.email}</p>
                   </div>
-                </div> */}
+                </div>
               </div>
 
               <nav className="p-2">
