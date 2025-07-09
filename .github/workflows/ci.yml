@@ -30,8 +30,11 @@ jobs:
 
       - run: npm ci
 
+<<<<<<< HEAD
       
 
+=======
+>>>>>>> 8e4ac7af0c5dbf05ec7cdb52c38a9996d3778ff9
       - name: Run unit tests with coverage
         run: npm test -- --coverage
 

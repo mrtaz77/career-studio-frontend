@@ -331,6 +331,7 @@ export const ProfileCompletionDialog = ({
       const token = await currentUser.getIdToken();
       const response = await fetch('/api/v1/users/me', {
         method: 'PUT',
+
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
@@ -361,6 +362,7 @@ export const ProfileCompletionDialog = ({
       });
     } finally {
       setLoading(false);
+      setUploadingImage(false); // Ensure upload state is also reset
     }
   };
 

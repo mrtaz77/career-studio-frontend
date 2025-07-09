@@ -8,14 +8,14 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Index from './pages/Index';
 import Dashboard from './pages/Dashboard';
 import NotFound from './pages/NotFound';
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider } from './AuthContext';
 import store from './utils/store';
 import { Provider } from 'react-redux';
 
 const queryClient = new QueryClient();
 
 // Protected route wrapper
-const _ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const isAuthenticated = !!localStorage.getItem('user');
 
   if (!isAuthenticated) {
