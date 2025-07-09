@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { FileText, Briefcase, User, LogOut } from 'lucide-react';
+import { FileText, Briefcase, User, LogOut, Trash2 } from 'lucide-react';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '../lib/firebase';
 
@@ -41,6 +41,16 @@ import {
   DialogDescription,
   DialogClose,
 } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -58,9 +68,63 @@ const Dashboard = () => {
   const [cvList, setCvList] = useState([]);
   const [cvListLoading, setCvListLoading] = useState(false);
   const [cvListError, setCvListError] = useState('');
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [cvToDelete, setCvToDelete] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const handleOpenCreateCVDialog = () => setShowCreateCVDialog(true);
   const handleCloseCreateCVDialog = () => setShowCreateCVDialog(false);
+
+  const handleDeleteCV = (cv) => {
+    setCvToDelete(cv);
+    setShowDeleteDialog(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!cvToDelete) return;
+
+    setIsDeleting(true);
+    try {
+      if (!currentUser) {
+        alert('You must be logged in to delete a CV.');
+        setIsDeleting(false);
+        return;
+      }
+      const idToken = await currentUser.getIdToken();
+      if (!idToken) {
+        alert('Failed to get authentication token.');
+        setIsDeleting(false);
+        return;
+      }
+      const res = await fetch(`${API_BASE_URL}/api/v1/cv/${cvToDelete.cv_id}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${idToken}`,
+        },
+      });
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error('Server error:', errorText);
+        alert('Failed to delete CV: ' + errorText);
+        setIsDeleting(false);
+        return;
+      }
+      // Remove the deleted CV from the list
+      setCvList(cvList.filter((cv) => cv.cv_id !== cvToDelete.cv_id));
+      setShowDeleteDialog(false);
+      setCvToDelete(null);
+    } catch (err) {
+      console.error('Error deleting CV:', err);
+      alert('Error deleting CV');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleCancelDelete = () => {
+    setShowDeleteDialog(false);
+    setCvToDelete(null);
+  };
 
   const handleCreateCVApi = async () => {
     setIsCreating(true);
@@ -266,7 +330,7 @@ const Dashboard = () => {
         // https://firebase.google.com/docs/reference/js/auth.user
         const { uid, email, displayName } = user;
         //dispatch(setShowGptSearch())
-        dispatch(addUser({ uid: uid, email: email, displayName: displayName }));
+        dispatch(addUser({ uid: uid, email: email, name: displayName }));
         navigate('/dashboard');
 
         // ...
@@ -329,27 +393,27 @@ const Dashboard = () => {
 
           <div className="flex items-center space-x-4">
             <div className="text-sm text-right">
-              <p className="font-medium">{currentUser?.displayName}</p>
+              <p className="font-medium">{user?.name}</p>
             </div>
             {/* <div className="h-10 w-10 rounded-full bg-jobathon-100 flex items-center justify-center text-jobathon-700 font-medium">
-              {user?.displayName?.charAt(0)}
+              {user?.name?.charAt(0)}
             </div> */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Avatar className="cursor-pointer">
                   <AvatarImage src={user?.photoURL || ''} />
                   <AvatarFallback className="bg-jobathon-100 text-jobathon-600 font-medium">
-                    {currentUser?.displayName
-                      ? currentUser?.displayName.charAt(0).toUpperCase()
-                      : currentUser?.email?.charAt(0).toUpperCase()}
+                    {user?.name
+                      ? user?.name.charAt(0).toUpperCase()
+                      : user?.email?.charAt(0).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuLabel>
                   <div className="flex flex-col">
-                    <span>{currentUser?.displayName || 'User'}</span>
-                    <span className="text-xs text-gray-500 font-normal">{currentUser?.email}</span>
+                    <span>{user?.name || 'User'}</span>
+                    <span className="text-xs text-gray-500 font-normal">{user?.email}</span>
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
@@ -372,11 +436,11 @@ const Dashboard = () => {
               <div className="p-6 border-b border-gray-200">
                 {/* <div className="flex items-center space-x-3">
                   <div className="h-14 w-14 rounded-full bg-jobathon-100 flex items-center justify-center text-jobathon-700 text-xl font-medium">
-                    {currentUser?.displayName?.charAt(0)}
+                    {user?.name?.charAt(0)}
                   </div>
                   <div>
-                    <h3 className="font-medium">{currentUser?.displayName}</h3>
-                    <p className="text-sm text-gray-500">{currentUser?.email}</p>
+                    <h3 className="font-medium">{user?.name}</h3>
+                    <p className="text-sm text-gray-500">{user?.email}</p>
                   </div>
                 </div> */}
               </div>
@@ -443,7 +507,7 @@ const Dashboard = () => {
                   {user && <UserProfileView onEdit={handleEditProfile} />}
                   <Card>
                     <CardHeader>
-                      <CardTitle>Welcome back, {currentUser?.displayName?.split(' ')[0]}</CardTitle>
+                      <CardTitle>Welcome back, {user?.name?.split(' ')[0]}</CardTitle>
 
                       <CardDescription>
                         Here is an overview of your job search progress.
@@ -540,12 +604,21 @@ const Dashboard = () => {
                                   {new Date(cv.updated_at).toLocaleString()}
                                 </td>
                                 <td className="px-4 py-2 border">
-                                  <Button
-                                    size="sm"
-                                    onClick={() => navigate(`/cv-builder?cv_id=${cv.cv_id}`)}
-                                  >
-                                    Edit
-                                  </Button>
+                                  <div className="flex space-x-2">
+                                    <Button
+                                      size="sm"
+                                      onClick={() => navigate(`/cv-builder?cv_id=${cv.cv_id}`)}
+                                    >
+                                      Edit
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="destructive"
+                                      onClick={() => handleDeleteCV(cv)}
+                                    >
+                                      <Trash2 size={16} />
+                                    </Button>
+                                  </div>
                                 </td>
                               </tr>
                             ))}
@@ -676,6 +749,22 @@ const Dashboard = () => {
         onClose={() => setShowProfileDialog(false)}
         currentUser={currentUser}
       />
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete your CV.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={handleCancelDelete}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmDelete} disabled={isDeleting}>
+              {isDeleting ? 'Deleting...' : 'Delete'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
