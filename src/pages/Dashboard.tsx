@@ -434,7 +434,7 @@ const Dashboard = () => {
           <div className="lg:w-1/4">
             <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
               <div className="p-6 border-b border-gray-200">
-                <div className="flex items-center space-x-3">
+                {/* <div className="flex items-center space-x-3">
                   <div className="h-14 w-14 rounded-full bg-jobathon-100 flex items-center justify-center text-jobathon-700 text-xl font-medium">
                     {user?.name?.charAt(0)}
                   </div>
@@ -442,7 +442,7 @@ const Dashboard = () => {
                     <h3 className="font-medium">{user?.name}</h3>
                     <p className="text-sm text-gray-500">{user?.email}</p>
                   </div>
-                </div>
+                </div> */}
               </div>
 
               <nav className="p-2">
