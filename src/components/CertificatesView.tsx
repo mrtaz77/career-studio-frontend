@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Edit, Trash2, Plus } from 'lucide-react';
@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { cert_img } from '../utils/constants';
+// import { cert_img } from '../utils/constants'; // Unused import
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -53,13 +53,11 @@ export const CertificatesView = () => {
   const { currentUser } = useAuth();
   const { toast } = useToast();
 
-  useEffect(() => {
-    fetchCertificates();
-  }, []);
+  const getIdToken = useCallback(async () => {
+    return currentUser ? await currentUser.getIdToken() : null;
+  }, [currentUser]);
 
-  const getIdToken = async () => (currentUser ? await currentUser.getIdToken() : null);
-
-  const fetchCertificates = async () => {
+  const fetchCertificates = useCallback(async () => {
     try {
       const idToken = await getIdToken();
       if (!idToken) return;
@@ -72,12 +70,16 @@ export const CertificatesView = () => {
       if (res.ok) {
         setCertificates(await res.json());
       }
-    } catch (err) {
-      console.error(err);
+    } catch (_err) {
+      // console.error(_err); // Silenced for production
     } finally {
       setLoading(false);
     }
-  };
+  }, [getIdToken]);
+
+  useEffect(() => {
+    fetchCertificates();
+  }, [fetchCertificates]);
 
   // ← CHANGED: handle file for *either* add-row or edit
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, index?: number) => {
