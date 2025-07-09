@@ -19,6 +19,7 @@ import { useAuth } from '@/context/AuthContext';
 import { Download, Edit } from 'lucide-react';
 
 import { ProfileCompletionDialog } from '@/components/ProfileCompletionDialog';
+import { CVEditor } from '@/components/CVEditor';
 import { UserProfileView } from '@/components/UserProfileView';
 import {
   DropdownMenu,
@@ -31,18 +32,6 @@ import {
 import { Award, School } from 'lucide-react';
 import { CertificatesView } from '@/components/CertificatesView';
 import { EducationView } from '@/components/EducationView';
-import {
-  Dialog,
-  DialogTrigger,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-  DialogDescription,
-  DialogClose,
-} from '@/components/ui/dialog';
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -52,62 +41,7 @@ const Dashboard = () => {
   const { currentUser, logout } = useAuth();
 
   const [showProfileDialog, setShowProfileDialog] = useState(false);
-  const [showCreateCVDialog, setShowCreateCVDialog] = useState(false);
-  const [cvType, setCVType] = useState('');
-  const [isCreating, setIsCreating] = useState(false);
-  const [cvList, setCvList] = useState([]);
-  const [cvListLoading, setCvListLoading] = useState(false);
-  const [cvListError, setCvListError] = useState('');
-
-  const handleOpenCreateCVDialog = () => setShowCreateCVDialog(true);
-  const handleCloseCreateCVDialog = () => setShowCreateCVDialog(false);
-
-  const handleCreateCVApi = async () => {
-    setIsCreating(true);
-    const payload = { type: cvType, template: 1 };
-    console.log('Sending create CV request:', payload);
-    try {
-      if (!currentUser) {
-        alert('You must be logged in to create a CV.');
-        setIsCreating(false);
-        return;
-      }
-      const idToken = await currentUser.getIdToken();
-      if (!idToken) {
-        alert('Failed to get authentication token.');
-        setIsCreating(false);
-        return;
-      }
-      const res = await fetch(`${API_BASE_URL}/api/v1/cv/create`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${idToken}`,
-        },
-        body: JSON.stringify(payload),
-      });
-      if (!res.ok) {
-        const errorText = await res.text();
-        console.error('Server error:', errorText);
-        alert('Failed to create CV: ' + errorText);
-        setIsCreating(false);
-        return;
-      }
-      const data = await res.json();
-      console.log('Create CV response:', data);
-      if (data.cv_id) {
-        setShowCreateCVDialog(false);
-        navigate(`/cv-builder?cv_id=${data.cv_id}`);
-      } else {
-        alert('Failed to create CV: ' + (data.detail || 'Unknown error'));
-      }
-    } catch (err) {
-      console.error('Error creating CV:', err);
-      alert('Error creating CV');
-    } finally {
-      setIsCreating(false);
-    }
-  };
+  const [showCVEditor, setShowCVEditor] = useState(false);
 
   // Check if profile is complete
   // useEffect(() => {
@@ -247,10 +181,6 @@ const Dashboard = () => {
     setShowProfileDialog(true);
   };
 
-  const handleCreateCV = () => {
-    navigate('/cv-builder');
-  };
-
   // Mock user data
   const userDummy = {
     name: 'Alex Johnson',
@@ -279,44 +209,6 @@ const Dashboard = () => {
       }
     });
   }, []);
-
-  // Fetch CV list when Smart CV tab is active
-  useEffect(() => {
-    const fetchCvList = async () => {
-      if (activeTab !== 'cv') return;
-      setCvListLoading(true);
-      setCvListError('');
-      try {
-        if (!currentUser) {
-          setCvListError('You must be logged in to view your CVs.');
-          setCvListLoading(false);
-          return;
-        }
-        const idToken = await currentUser.getIdToken();
-        if (!idToken) {
-          setCvListError('Failed to get authentication token.');
-          setCvListLoading(false);
-          return;
-        }
-        const res = await fetch(`${API_BASE_URL}/api/v1/cv/list`, {
-          headers: { Authorization: `Bearer ${idToken}` },
-        });
-        if (!res.ok) {
-          const errorText = await res.text();
-          setCvListError('Failed to fetch CVs: ' + errorText);
-          setCvListLoading(false);
-          return;
-        }
-        const data = await res.json();
-        setCvList(data);
-      } catch (err) {
-        setCvListError('Error fetching CVs');
-      } finally {
-        setCvListLoading(false);
-      }
-    };
-    fetchCvList();
-  }, [activeTab, currentUser]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -505,101 +397,34 @@ const Dashboard = () => {
                     <CardDescription>Create and manage your professional resumes</CardDescription>
                   </CardHeader>
                   <CardContent>
-                    {/* CV List Table */}
-                    {cvListLoading ? (
-                      <div className="py-8 text-center">Loading CVs...</div>
-                    ) : cvListError ? (
-                      <div className="py-8 text-center text-red-500">{cvListError}</div>
-                    ) : cvList.length === 0 ? (
-                      <div className="py-8 text-center text-gray-500">
-                        No CVs found. Create your first CV!
+                    <div className="grid grid-cols-1 md:grid-cols-1  mb-6">
+                      <div className="border border-gray-200 rounded-lg p-4 flex flex-col">
+                        <div className="flex-1">
+                          <h3 className="font-medium mb-1">Professional Resume</h3>
+                          <p className="text-sm text-gray-500 mb-3">Last edited 5 days ago</p>
+                          <div className="h-48 bg-gray-100 rounded mb-3 flex items-center justify-center text-gray-400">
+                            Resume Preview
+                          </div>
+                        </div>
+                        <div className="flex space-x-2 mt-2">
+                          <Button
+                            onClick={() => setShowCVEditor(true)}
+                            className="flex-1 bg-jobathon-600 hover:bg-jobathon-700"
+                          >
+                            <Edit size={16} className="mr-1" />
+                            Edit
+                          </Button>
+                          <Button variant="outline" className="flex-1" onClick={downloadCV}>
+                            <Download size={16} className="mr-1" />
+                            Download
+                          </Button>
+                        </div>
                       </div>
-                    ) : (
-                      <div className="overflow-x-auto mb-6">
-                        <table className="min-w-full border text-sm">
-                          <thead>
-                            <tr className="bg-gray-100">
-                              <th className="px-4 py-2 border">Title</th>
-                              <th className="px-4 py-2 border">Template</th>
-                              <th className="px-4 py-2 border">Version</th>
-                              <th className="px-4 py-2 border">Created At</th>
-                              <th className="px-4 py-2 border">Updated At</th>
-                              <th className="px-4 py-2 border">Action</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {cvList.map((cv) => (
-                              <tr key={cv.cv_id} className="border-b">
-                                <td className="px-4 py-2 border">{cv.title}</td>
-                                <td className="px-4 py-2 border">{cv.template}</td>
-                                <td className="px-4 py-2 border">{cv.version_number}</td>
-                                <td className="px-4 py-2 border">
-                                  {new Date(cv.created_at).toLocaleString()}
-                                </td>
-                                <td className="px-4 py-2 border">
-                                  {new Date(cv.updated_at).toLocaleString()}
-                                </td>
-                                <td className="px-4 py-2 border">
-                                  <Button
-                                    size="sm"
-                                    onClick={() => navigate(`/cv-builder?cv_id=${cv.cv_id}`)}
-                                  >
-                                    Edit
-                                  </Button>
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    )}
-                    {/* Create New CV Button and Dialog remain unchanged */}
-                    <Button className="w-full" onClick={handleOpenCreateCVDialog}>
+                    </div>
+
+                    <Button className="w-full" onClick={() => setShowCVEditor(true)}>
                       Create New CV
                     </Button>
-                    <Dialog open={showCreateCVDialog} onOpenChange={setShowCreateCVDialog}>
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle>Create New CV</DialogTitle>
-                          <DialogDescription>
-                            Select the type of CV you want to create. Template is set to Basic.
-                          </DialogDescription>
-                        </DialogHeader>
-                        <div className="my-4">
-                          <label htmlFor="cv-type" className="block mb-2 font-medium">
-                            CV Type
-                          </label>
-                          <select
-                            id="cv-type"
-                            className="w-full border rounded px-3 py-2"
-                            value={cvType}
-                            onChange={(e) => setCVType(e.target.value)}
-                          >
-                            <option value="">Select type</option>
-                            <option value="academic">Academic</option>
-                            <option value="industry">Industry</option>
-                            <option value="general">General</option>
-                          </select>
-                        </div>
-                        <div className="my-2">
-                          <label className="block mb-2 font-medium">Template</label>
-                          <input
-                            type="text"
-                            value="Basic"
-                            disabled
-                            className="w-full border rounded px-3 py-2 bg-gray-100"
-                          />
-                        </div>
-                        <DialogFooter>
-                          <Button onClick={handleCreateCVApi} disabled={!cvType || isCreating}>
-                            {isCreating ? 'Creating...' : 'Create'}
-                          </Button>
-                          <DialogClose asChild>
-                            <Button variant="outline">Cancel</Button>
-                          </DialogClose>
-                        </DialogFooter>
-                      </DialogContent>
-                    </Dialog>
                   </CardContent>
                 </Card>
               </TabsContent>
@@ -676,6 +501,9 @@ const Dashboard = () => {
         onClose={() => setShowProfileDialog(false)}
         currentUser={currentUser}
       />
+
+      {/* CV Editor */}
+      <CVEditor open={showCVEditor} onClose={() => setShowCVEditor(false)} />
     </div>
   );
 };

@@ -47,7 +47,7 @@ export const UserProfileView = ({ onEdit }: UserProfileViewProps) => {
       } else {
         throw new Error('Failed to fetch profile');
       }
-    } catch {
+    } catch (error) {
       // console.error('Error fetching user profile:', error);
       toast({
         title: 'Error',

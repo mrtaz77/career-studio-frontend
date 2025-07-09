@@ -1,5 +1,5 @@
 {
-  "name": "vite_react_shadcn_ts",
+  "name": "career-studio-frontend",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -110,7 +110,6 @@
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
-      "eslint --fix --cache",
       "prettier --write"
     ],
     "*.{json,css,md}": [
