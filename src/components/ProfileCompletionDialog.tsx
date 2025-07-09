@@ -315,95 +315,49 @@ export const ProfileCompletionDialog = ({
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      if (!currentUser) {
-        throw new Error('No user is signed in');
-      }
-
-      // Upload image if a new one was selected
-      let imageUrl = formData.imgUrl;
+      let imageUrl = null;
       if (selectedFile) {
-        // Set a timeout for the upload process
-        const uploadPromise = uploadImageToBackend();
-        const timeoutPromise = new Promise<string | null>((resolve) => {
-          setTimeout(() => {
-            // console.log('Upload timeout reached, proceeding without image');
-            resolve(null);
-          }, 15000); // 15 second timeout (reduced for better UX)
-        });
-
-        const uploadedUrl = await Promise.race([uploadPromise, timeoutPromise]);
-
-        if (uploadedUrl) {
-          imageUrl = uploadedUrl;
-        } else {
-          // Image upload failed or timed out, but allow user to proceed without profile picture
-          toast({
-            title: 'Proceeding without profile picture',
-            description: 'Your profile will be saved without the new image.',
-            variant: 'default',
-          });
-          // Reset the selected file and preview
-          setSelectedFile(null);
-          setImagePreview(formData.imgUrl || '');
-          // Reset file input
-          const fileInput = document.getElementById('profilePicture') as HTMLInputElement;
-          if (fileInput) fileInput.value = '';
+        imageUrl = await uploadImageToBackend();
+        if (!imageUrl) {
+          throw new Error('Failed to upload profile picture');
         }
       }
 
-      // 1. Grab the Firebase ID token to authenticate
-      const idToken = await currentUser.getIdToken(/* forceRefresh = */ false);
-      // console.log("ID Token:", idToken);
-      // 2. Build the payload — only include fields the API expects
-      const payload: {
-        username?: string | null;
-        full_name?: string | null;
-        img?: string | null;
-        address?: string | null;
-        phone?: string | null;
-      } = {};
+      const token = await currentUser.getIdToken();
+      const response = await fetch('/api/v1/users/me', {
+        method: 'PUT',
 
-      // Only send the keys the user actually filled out:
-      if (formData.username) payload.username = formData.username;
-      if (formData?.full_name) payload.full_name = formData.full_name;
-      if (imageUrl) payload.img = imageUrl;
-      if (formData?.address) payload.address = formData.address;
-      if (formData?.contactNumber) payload.phone = formData.contactNumber;
-
-      // 3. Make the PATCH request
-      const response = await fetch(`${API_BASE_URL}/api/v1/users/me`, {
-        method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${idToken}`,
+          Authorization: `Bearer ${token}`,
         },
-
-        body: JSON.stringify(payload),
+        body: JSON.stringify({
+          ...formData,
+          img: imageUrl || formData.imgUrl,
+        }),
       });
 
       if (!response.ok) {
-        const err = await response.json().catch(() => ({}));
-        throw new Error(err.message || 'Failed to update profile');
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to save profile information');
       }
-      window.dispatchEvent(new Event('profileUpdated'));
 
+      const data = await response.json();
       toast({
         title: 'Profile updated!',
         description: 'Your profile information was saved successfully.',
         variant: 'default',
       });
-
       onClose();
-    } catch (error: unknown) {
-      // console.error('Profile update error:', error);
+    } catch (error) {
       toast({
         title: 'Error',
-        description: error instanceof Error ? error.message : 'Failed to save profile information.',
+        description: error instanceof Error ? error.message : 'Failed to save profile information',
         variant: 'destructive',
       });
     } finally {
@@ -413,16 +367,16 @@ export const ProfileCompletionDialog = ({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+    <Dialog open={open} onOpenChange={() => !loading && onClose()}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Complete Your Profile</DialogTitle>
           <DialogDescription>
-            Please provide additional information to enhance your job search experience.
+            Please provide your information to complete your profile.
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4" role="form">
           {/* Profile Picture Upload */}
           <div className="flex flex-col items-center space-y-3">
             <Label>Profile Picture (Optional)</Label>
@@ -502,8 +456,17 @@ export const ProfileCompletionDialog = ({
             <Input
               id="contactNumber"
               value={formData?.contactNumber}
-              onChange={(e) => handleInputChange('contactNumber', e.target.value)}
-              placeholder="Enter your phone number"
+              onChange={(e) => {
+                let value = e.target.value;
+                // Auto-add '+' if user starts typing without it
+                if (value.length === 1 && value !== '+' && /\d/.test(value)) {
+                  value = '+' + value;
+                }
+                handleInputChange('contactNumber', value);
+              }}
+              placeholder="Enter phone number (e.g., +1234567890)"
+              pattern="^\+[1-9]\d{1,14}$"
+              title="Phone number must start with + followed by country code and number"
               required
             />
           </div>
@@ -518,42 +481,40 @@ export const ProfileCompletionDialog = ({
               required
             />
           </div>
-
           <div>
             <Label htmlFor="jobTitle">Current Job Title</Label>
             <Input
               id="jobTitle"
+              placeholder="Enter your current job title"
               value={formData.jobTitle}
               onChange={(e) => handleInputChange('jobTitle', e.target.value)}
-              placeholder="e.g., Software Developer"
+              required
             />
           </div>
-
           <div>
             <Label htmlFor="company">Current Company</Label>
             <Input
               id="company"
-              value={formData?.company}
+              placeholder="Enter your current company"
+              value={formData.company}
               onChange={(e) => handleInputChange('company', e.target.value)}
-              placeholder="e.g., Tech Corp"
+              required
             />
           </div>
 
-          <div className="flex space-x-2 pt-4">
-            <Button type="submit" disabled={loading || uploadingImage} className="flex-1">
-              {uploadingImage
-                ? 'Uploading Image...'
-                : loading
-                  ? 'Saving Profile...'
-                  : 'Complete Profile'}
+          <div className="flex justify-end space-x-2 mt-4">
+            <Button type="button" variant="outline" onClick={onClose} disabled={loading}>
+              Cancel
             </Button>
             <Button
-              type="button"
-              variant="outline"
-              onClick={onClose}
-              disabled={loading || uploadingImage}
+              type="submit"
+              disabled={loading}
+              name="save"
+              aria-label={loading ? 'Saving changes...' : 'Save Changes'}
+              data-state={loading ? 'loading' : 'idle'}
+              className={`${loading ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''}`}
             >
-              Skip for now
+              {loading ? 'Saving...' : 'Save Changes'}
             </Button>
           </div>
         </form>

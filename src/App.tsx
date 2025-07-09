@@ -16,7 +16,7 @@ import { Provider } from 'react-redux';
 const queryClient = new QueryClient();
 
 // Protected route wrapper
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+const _ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const isAuthenticated = !!localStorage.getItem('user');
 
   if (!isAuthenticated) {

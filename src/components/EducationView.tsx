@@ -283,7 +283,7 @@
 //   );
 // };
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Edit, Trash2, Plus, GraduationCap } from 'lucide-react';
@@ -356,7 +356,7 @@ export const EducationView = () => {
   const getIdToken = async () => (currentUser ? await currentUser.getIdToken() : null);
 
   // Load list
-  const fetchEducation = async () => {
+  const fetchEducation = useCallback(async () => {
     try {
       const token = await getIdToken();
       if (!token) return;
@@ -389,12 +389,11 @@ export const EducationView = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentUser, toast]);
 
   useEffect(() => {
     fetchEducation();
-    // eslint-disable-next-line
-  }, [educationList.length, currentUser]);
+  }, [fetchEducation]);
 
   // Open Add vs. Edit
   const openAddModal = () => {
@@ -417,8 +416,8 @@ export const EducationView = () => {
       institution: edu.institution,
       degree: edu.degree,
       location: edu.location,
-      startDate: edu.startDate.slice(0, 10),
-      endDate: edu.endDate.slice(0, 10),
+      startDate: edu.startDate?.slice(0, 10) || '',
+      endDate: edu.endDate?.slice(0, 10) || '',
       gpa: edu.gpa || '',
       honors: edu.honors || '',
     });
@@ -572,7 +571,8 @@ export const EducationView = () => {
                   <p className="text-gray-600">{edu.location}</p>
                   <p className="text-sm text-gray-500 mb-1">{edu.institution}</p>
                   <p className="text-sm text-gray-500 mb-1">
-                    {edu.startDate} – {edu.endDate} {edu.gpa && <span>· GPA: {edu.gpa}</span>}
+                    {edu.startDate?.slice(0, 10) || 'N/A'} to {edu.endDate?.slice(0, 10) || 'N/A'}{' '}
+                    {edu.gpa && <span>· GPA: {edu.gpa}</span>}
                   </p>
                   {edu.honors && <p className="text-sm text-gray-600">{edu.honors}</p>}
                 </div>
@@ -608,7 +608,7 @@ export const EducationView = () => {
 
       {/* Modal */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent>
+        <DialogContent className="w-[95vw] max-w-md sm:max-w-lg lg:max-w-xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editingEdu ? 'Edit Education' : 'Add Education'}</DialogTitle>
             <DialogDescription>

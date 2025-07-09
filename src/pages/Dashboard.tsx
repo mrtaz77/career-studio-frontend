@@ -329,7 +329,7 @@ const Dashboard = () => {
 
           <div className="flex items-center space-x-4">
             <div className="text-sm text-right">
-              <p className="font-medium">{user?.displayName}</p>
+              <p className="font-medium">{currentUser?.displayName}</p>
             </div>
             {/* <div className="h-10 w-10 rounded-full bg-jobathon-100 flex items-center justify-center text-jobathon-700 font-medium">
               {user?.displayName?.charAt(0)}
@@ -339,17 +339,17 @@ const Dashboard = () => {
                 <Avatar className="cursor-pointer">
                   <AvatarImage src={user?.photoURL || ''} />
                   <AvatarFallback className="bg-jobathon-100 text-jobathon-600 font-medium">
-                    {user?.displayName
-                      ? user?.displayName.charAt(0).toUpperCase()
-                      : user?.email?.charAt(0).toUpperCase()}
+                    {currentUser?.displayName
+                      ? currentUser?.displayName.charAt(0).toUpperCase()
+                      : currentUser?.email?.charAt(0).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuLabel>
                   <div className="flex flex-col">
-                    <span>{user?.displayName || 'User'}</span>
-                    <span className="text-xs text-gray-500 font-normal">{user?.email}</span>
+                    <span>{currentUser?.displayName || 'User'}</span>
+                    <span className="text-xs text-gray-500 font-normal">{currentUser?.email}</span>
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
@@ -370,15 +370,15 @@ const Dashboard = () => {
           <div className="lg:w-1/4">
             <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
               <div className="p-6 border-b border-gray-200">
-                <div className="flex items-center space-x-3">
+                {/* <div className="flex items-center space-x-3">
                   <div className="h-14 w-14 rounded-full bg-jobathon-100 flex items-center justify-center text-jobathon-700 text-xl font-medium">
-                    {user?.displayName?.charAt(0)}
+                    {currentUser?.displayName?.charAt(0)}
                   </div>
                   <div>
-                    <h3 className="font-medium">{user?.displayName}</h3>
-                    <p className="text-sm text-gray-500">{user?.email}</p>
+                    <h3 className="font-medium">{currentUser?.displayName}</h3>
+                    <p className="text-sm text-gray-500">{currentUser?.email}</p>
                   </div>
-                </div>
+                </div> */}
               </div>
 
               <nav className="p-2">
@@ -443,7 +443,7 @@ const Dashboard = () => {
                   {user && <UserProfileView onEdit={handleEditProfile} />}
                   <Card>
                     <CardHeader>
-                      <CardTitle>Welcome back, {user?.displayName?.split(' ')[0]}</CardTitle>
+                      <CardTitle>Welcome back, {currentUser?.displayName?.split(' ')[0]}</CardTitle>
 
                       <CardDescription>
                         Here is an overview of your job search progress.

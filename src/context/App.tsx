@@ -8,7 +8,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Index from './pages/Index';
 import Dashboard from './pages/Dashboard';
 import NotFound from './pages/NotFound';
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider } from './AuthContext';
 import store from './utils/store';
 import { Provider } from 'react-redux';
 

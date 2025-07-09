@@ -66,7 +66,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         // docs show no request‐body for signup
         // if you ever add fields, JSON.stringify({ name, email })
       });
-      console.log('res', res);
+      // console.log('res', res);
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
         throw new Error(err.detail || 'Signup failed on the backend');
@@ -89,14 +89,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         description: message || 'Your account was created.',
         variant: 'default',
       });
-    } catch (error: unknown) {
+    } catch (_error: unknown) {
       toast({
         title: 'Error creating account',
 
-        description: error instanceof Error ? error.message : 'Failed to create Account.',
+        description: _error instanceof Error ? _error.message : 'Failed to create Account.',
         variant: 'destructive',
       });
-      return Promise.reject(error);
+      return Promise.reject(_error);
     }
   };
 
@@ -140,13 +140,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         description: message || 'You are signed in.',
         variant: 'default',
       });
-    } catch (error: unknown) {
+    } catch (_error: unknown) {
       toast({
         title: 'Authentication failed',
-        description: error instanceof Error ? error.message : 'Failed to sign in.',
+        description: _error instanceof Error ? _error.message : 'Failed to sign in.',
         variant: 'destructive',
       });
-      return Promise.reject(error);
+      return Promise.reject(_error);
     }
   };
 
@@ -160,7 +160,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const idToken = await result.user.getIdToken();
 
       // hit the /signin endpoint (which also creates if new)
-      const res = await fetch(`${API_BASE_URL}/api/v1/auth/signin`, {
+      const res = await fetch(`${API_BASE_URL}/api/v1/auth/signup`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -183,13 +183,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         })
       );
       toast({ title: 'Welcome!', description: message, variant: 'default' });
-    } catch (error: unknown) {
+    } catch (_error: unknown) {
       toast({
         title: 'Authentication failed',
-        description: error instanceof Error ? error.message : 'Failed to sign in.',
+        description: _error instanceof Error ? _error.message : 'Failed to sign in.',
         variant: 'destructive',
       });
-      return Promise.reject(error);
+      return Promise.reject(_error);
     }
   };
 
@@ -222,13 +222,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         })
       );
       toast({ title: 'Welcome!', description: message, variant: 'default' });
-    } catch (error: unknown) {
+    } catch (_error: unknown) {
       toast({
         title: 'Authentication failed',
-        description: error instanceof Error ? error.message : 'Failed to sign in.',
+        description: _error instanceof Error ? _error.message : 'Failed to sign in.',
         variant: 'destructive',
       });
-      return Promise.reject(error);
+      return Promise.reject(_error);
     }
   };
 
@@ -240,13 +240,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       await signOut(auth);
       toast({ title: 'Signed out', variant: 'default' });
       return Promise.resolve();
-    } catch (error: unknown) {
+    } catch (_error: unknown) {
       toast({
         title: 'Error signing out',
-        description: error instanceof Error ? error.message : 'Failed to sign out.',
+        description: _error instanceof Error ? _error.message : 'Failed to sign out.',
         variant: 'destructive',
       });
-      return Promise.reject(error);
+      return Promise.reject(_error);
     }
   };
 
