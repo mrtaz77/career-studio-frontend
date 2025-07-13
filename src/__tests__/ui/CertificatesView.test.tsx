@@ -60,7 +60,9 @@ describe('CertificatesView', () => {
       json: async () => [],
     });
 
-    renderWithClient();
+    await act(async () => {
+      renderWithClient();
+    });
 
     // Wait for loading to complete
     await waitFor(() => {
@@ -84,7 +86,9 @@ describe('CertificatesView', () => {
         )
     );
 
-    renderWithClient();
+    await act(async () => {
+      renderWithClient();
+    });
 
     // Should show loading text
     expect(screen.getByText('Loading...')).toBeInTheDocument();
@@ -106,7 +110,9 @@ describe('CertificatesView', () => {
       json: async () => mockCertificates,
     });
 
-    renderWithClient();
+    await act(async () => {
+      renderWithClient();
+    });
 
     await waitFor(() => {
       expect(screen.getByText('Test Certificate')).toBeInTheDocument();
@@ -117,7 +123,9 @@ describe('CertificatesView', () => {
   test('handles fetch error gracefully', async () => {
     (global.fetch as jest.Mock).mockRejectedValueOnce(new Error('Network error'));
 
-    renderWithClient();
+    await act(async () => {
+      renderWithClient();
+    });
 
     await waitFor(() => {
       expect(screen.getByText('Certificates')).toBeInTheDocument();
@@ -130,26 +138,33 @@ describe('CertificatesView', () => {
       json: async () => [],
     });
 
-    renderWithClient();
+    await act(async () => {
+      renderWithClient();
+    });
 
     await waitFor(() => {
       expect(screen.getByText('Certificates')).toBeInTheDocument();
     });
 
     const addButton = screen.getByText('Add Certificate(s)');
-    fireEvent.click(addButton);
+
+    await act(async () => {
+      fireEvent.click(addButton);
+    });
 
     await waitFor(() => {
       expect(screen.getByRole('dialog')).toBeInTheDocument();
     });
   });
 
-  test('renders without crashing', () => {
+  test('renders without crashing', async () => {
     (global.fetch as jest.Mock).mockResolvedValueOnce({
       ok: true,
       json: async () => [],
     });
 
-    expect(() => renderWithClient()).not.toThrow();
+    await act(async () => {
+      expect(() => renderWithClient()).not.toThrow();
+    });
   });
 });
