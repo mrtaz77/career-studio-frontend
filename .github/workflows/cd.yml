@@ -41,41 +41,6 @@ jobs:
           echo "${{ secrets.VITE_FIREBASE_MEASUREMENT_ID }}" > firebase_measurement_id
           echo "/api" > api_base_url
 
-      - name: Clean up all old images in ACR
-        run: |
-          # Delete all existing images (aggressive cleanup)
-          echo "Attempting ACR cleanup for frontend repository..."
-          
-          # Use try-catch approach to handle potential authentication errors
-          {
-            # List all frontend image tags
-            TAGS=$(az acr repository show-tags --name ${{ secrets.ACR_NAME }} \
-              --repository frontend \
-              --output tsv 2>/dev/null || echo "")
-            
-            if [ -z "$TAGS" ]; then
-              echo "No images found or repository doesn't exist yet."
-            else
-              echo "Found images to delete. Keeping only the new image."
-              
-              # Calculate max images to keep ACR under size limit
-              COUNT=$(echo "$TAGS" | wc -l)
-              if [ "$COUNT" -gt 3 ]; then
-                echo "Deleting older images (keeping 3 most recent)..."
-                # Skip error reporting for individual deletes
-                for TAG in $TAGS; do
-                  echo "  - Trying to delete: frontend:$TAG"
-                  az acr repository delete --name ${{ secrets.ACR_NAME }} \
-                    --image frontend:$TAG --yes 2>/dev/null || true
-                done
-              else
-                echo "Only $COUNT images found, no cleanup needed."
-              fi
-            fi
-          } || {
-            echo "ACR cleanup encountered errors but continuing with deployment..."
-          }
-
       - name: Build & Push Frontend Docker Image securely
         env:
           IMAGE_TAG: ${{ secrets.ACR_LOGIN_SERVER }}/frontend:${{ github.sha }}
@@ -99,72 +64,20 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}
           key:      ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            mkdir -p ~/career-studio
-            cd ~/career-studio
+            mkdir -p ~/frontend
+            cd ~/frontend
 
             if [ ! -d ".git" ]; then
               git init
-              git remote add origin https://github.com/mrtaz77/career-studio.git
+              git remote add origin https://github.com/mrtaz77/career-studio-frontend.git
             fi
 
             git fetch origin
             git reset --hard origin/main
-            cd frontend
-            
-            # Skip explicit login - we'll rely on image pulls instead
-            echo "Note: Skipping explicit ACR login on VM. Docker pull will attempt authentication."
 
             # Update image tag in docker-compose.yml
-            sed -i "s|image:.*|image: ${{ secrets.ACR_LOGIN_SERVER }}/frontend:${{ github.sha }}|g" docker-compose.yml
+            sed -i "s|image:.*frontend:.*|image: ${{ secrets.ACR_LOGIN_SERVER }}/frontend:${{ github.sha }}|g" docker-compose.yml
 
-            # Create network if it doesn't exist
-            docker network create backend_app-network 2>/dev/null || true
-            
-            # Clear docker caches and ensure fresh pull
-            docker system prune -f
-            
-            # Remove any existing containers to ensure clean start
-            docker compose down -v || true
-            
-            # Attempt docker login if credentials are available
-            if [[ -f ~/.docker/config.json ]]; then
-              echo "Using existing Docker credentials"
-            else
-              echo "No Docker credentials found, attempting ACR login..."
-              az acr login --name ${{ secrets.ACR_NAME }} || echo "Warning: ACR login failed, pull might fail"
-            fi
-            
-            # Force pull with retries
-            echo "Pulling latest image with retries..."
-            MAX_RETRIES=3
-            RETRY_COUNT=0
-            
-            while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
-              if docker compose pull; then
-                echo "Image pulled successfully!"
-                break
-              else
-                RETRY_COUNT=$((RETRY_COUNT+1))
-                if [ $RETRY_COUNT -lt $MAX_RETRIES ]; then
-                  echo "Pull failed, retrying in 5 seconds... (Attempt $RETRY_COUNT/$MAX_RETRIES)"
-                  sleep 5
-                else
-                  echo "Failed to pull image after $MAX_RETRIES attempts."
-                  exit 1
-                fi
-              fi
-            done
-            
-            # Run with force recreation
-            echo "Starting container..."
-            docker compose up -d --force-recreate frontend
-            
-            # Verify deployment
-            if docker ps | grep -q frontend; then
-              echo "Deployment successful! Container is running."
-            else
-              echo "WARNING: Container failed to start or is not running!"
-            fi
-            
-            # Clean up unused images
+            docker compose pull frontend
+            docker compose up -d frontend
             docker image prune -f
