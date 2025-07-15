@@ -79,5 +79,5 @@ jobs:
             sed -i "s|image:.*frontend:.*|image: ${{ secrets.ACR_LOGIN_SERVER }}/frontend:${{ github.sha }}|g" docker-compose.yml
 
             docker compose pull frontend
-            docker compose up -d frontend
+            docker compose up -d --force-recreate --no-deps frontend
             docker image prune -f
