@@ -74,10 +74,25 @@ jobs:
 
             git fetch origin
             git reset --hard origin/main
-
-            # Update image tag in docker-compose.yml
-            sed -i "s|image:.*frontend:.*|image: ${{ secrets.ACR_LOGIN_SERVER }}/frontend:${{ github.sha }}|g" docker-compose.yml
-
+            
+            # Update the image tag in the existing docker-compose.yml
+            echo "Updating image in docker-compose.yml..."
+            sed -i "s|image: placeholder-image-tag|image: ${{ secrets.ACR_LOGIN_SERVER }}/frontend:${{ github.sha }}|g" docker-compose.yml
+            
+            # Create network if it doesn't exist
+            docker network create backend_app-network 2>/dev/null || true
+            
+            # Pull and start the container
+            echo "Pulling and starting the container..."
             docker compose pull frontend
             docker compose up -d --force-recreate --no-deps frontend
+            
+            # Verify the container is running
+            if docker ps | grep -q frontend; then
+              echo "✅ Frontend container is running successfully"
+            else
+              echo "❌ ERROR: Frontend container failed to start!"
+            fi
+            
+            # Clean up unused images
             docker image prune -f

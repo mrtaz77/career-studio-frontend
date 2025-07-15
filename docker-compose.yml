@@ -1,41 +1,46 @@
 services:
   frontend:
     container_name: frontend
-    build:
-      context: .
-      dockerfile: Dockerfile
-      secrets:
-        - firebase_api_key
-        - firebase_auth_domain
-        - firebase_project_id
-        - firebase_storage_bucket
-        - firebase_messaging_sender_id
-        - firebase_app_id
-        - firebase_measurement_id
-        - api_base_url
+    # For local development with secrets (uncomment when building locally)
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile
+    #   secrets:
+    #     - firebase_api_key
+    #     - firebase_auth_domain
+    #     - firebase_project_id
+    #     - firebase_storage_bucket
+    #     - firebase_messaging_sender_id
+    #     - firebase_app_id
+    #     - firebase_measurement_id
+    #     - api_base_url
+    
+    # For production deployment (image with baked-in secrets)
+    image: placeholder-image-tag
     ports:
       - "80:80"
     restart: unless-stopped
     networks:
       - backend_app-network
 
-secrets:
-  firebase_api_key:
-    file: ./secrets/firebase_api_key
-  firebase_auth_domain:
-    file: ./secrets/firebase_auth_domain
-  firebase_project_id:
-    file: ./secrets/firebase_project_id
-  firebase_storage_bucket:
-    file: ./secrets/firebase_storage_bucket
-  firebase_messaging_sender_id:
-    file: ./secrets/firebase_messaging_sender_id
-  firebase_app_id:
-    file: ./secrets/firebase_app_id
-  firebase_measurement_id:
-    file: ./secrets/firebase_measurement_id
-  api_base_url:
-    file: ./secrets/api_base_url
+# Uncomment this section for local development
+# secrets:
+#   firebase_api_key:
+#     file: ./secrets/firebase_api_key
+#   firebase_auth_domain:
+#     file: ./secrets/firebase_auth_domain
+#   firebase_project_id:
+#     file: ./secrets/firebase_project_id
+#   firebase_storage_bucket:
+#     file: ./secrets/firebase_storage_bucket
+#   firebase_messaging_sender_id:
+#     file: ./secrets/firebase_messaging_sender_id
+#   firebase_app_id:
+#     file: ./secrets/firebase_app_id
+#   firebase_measurement_id:
+#     file: ./secrets/firebase_measurement_id
+#   api_base_url:
+#     file: ./secrets/api_base_url
 
 networks:
   backend_app-network:
