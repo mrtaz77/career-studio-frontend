@@ -41,6 +41,28 @@ jobs:
           echo "${{ secrets.VITE_FIREBASE_MEASUREMENT_ID }}" > firebase_measurement_id
           echo "/api" > api_base_url
 
+      - name: Clean up all old images in ACR
+        run: |
+          # Delete all existing images (aggressive cleanup)
+          echo "Performing complete ACR cleanup for frontend repository..."
+          
+          # List all frontend image tags
+          TAGS=$(az acr repository show-tags --name ${{ secrets.ACR_NAME }} \
+            --repository frontend \
+            --output tsv 2>/dev/null || echo "")
+          
+          if [ -z "$TAGS" ]; then
+            echo "No images found or repository doesn't exist yet."
+          else
+            echo "Deleting all existing frontend images:"
+            for TAG in $TAGS; do
+              echo "  - Deleting: frontend:$TAG"
+              az acr repository delete --name ${{ secrets.ACR_NAME }} \
+                --image frontend:$TAG --yes
+            done
+            echo "All old images deleted successfully."
+          fi
+
       - name: Build & Push Frontend Docker Image securely
         env:
           IMAGE_TAG: ${{ secrets.ACR_LOGIN_SERVER }}/frontend:${{ github.sha }}
@@ -64,20 +86,37 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}
           key:      ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            mkdir -p ~/frontend
-            cd ~/frontend
+            mkdir -p ~/career-studio
+            cd ~/career-studio
 
             if [ ! -d ".git" ]; then
               git init
-              git remote add origin https://github.com/mrtaz77/career-studio-frontend.git
+              git remote add origin https://github.com/mrtaz77/career-studio.git
             fi
 
             git fetch origin
             git reset --hard origin/main
+            cd frontend
+            
+            # Login to ACR to pull images
+            az acr login --name ${{ secrets.ACR_NAME }}
 
             # Update image tag in docker-compose.yml
-            sed -i "s|image:.*frontend:.*|image: ${{ secrets.ACR_LOGIN_SERVER }}/frontend:${{ github.sha }}|g" docker-compose.yml
+            sed -i "s|image:.*|image: ${{ secrets.ACR_LOGIN_SERVER }}/frontend:${{ github.sha }}|g" docker-compose.yml
 
-            docker compose pull frontend
-            docker compose up -d frontend
-            docker image prune -f
+            # Create network if it doesn't exist
+            docker network create backend_app-network 2>/dev/null || true
+            
+            # Clear docker caches and ensure fresh pull
+            docker system prune -f
+            
+            # Remove any existing containers to ensure clean start
+            docker compose down -v || true
+            
+            # Force pull the latest image (with no cache)
+            docker compose pull --no-cache
+            
+            # Run with force recreation and no cache
+            docker compose up -d --force-recreate frontend
+
+            docker image prune -a -f
