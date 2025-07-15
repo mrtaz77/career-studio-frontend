@@ -5,7 +5,6 @@ on:
     branches: [ main ]
 
 permissions:
-  id-token: write
   contents: read
 
 jobs:
@@ -13,49 +12,9 @@ jobs:
     name: Deploy Frontend to Azure VM
     runs-on: ubuntu-latest
 
-    env:
-      DOCKER_BUILDKIT: 1  # For secret mounts
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Azure Login
-        uses: azure/login@v1
-        with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-
-      - name: Login to ACR
-        run: az acr login --name ${{ secrets.ACR_NAME }}
-
-      - name: Prepare secret files for secure build
-        run: |
-          echo "${{ secrets.VITE_FIREBASE_API_KEY }}" > firebase_api_key
-          echo "${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}" > firebase_auth_domain
-          echo "${{ secrets.VITE_FIREBASE_PROJECT_ID }}" > firebase_project_id
-          echo "${{ secrets.VITE_FIREBASE_STORAGE_BUCKET }}" > firebase_storage_bucket
-          echo "${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }}" > firebase_messaging_sender_id
-          echo "${{ secrets.VITE_FIREBASE_APP_ID }}" > firebase_app_id
-          echo "${{ secrets.VITE_FIREBASE_MEASUREMENT_ID }}" > firebase_measurement_id
-          echo "/api" > api_base_url
-
-      - name: Build & Push Frontend Docker Image securely
-        env:
-          IMAGE_TAG: ${{ secrets.ACR_LOGIN_SERVER }}/frontend:${{ github.sha }}
-        run: |
-          docker build -t $IMAGE_TAG \
-            --secret id=firebase_api_key,src=firebase_api_key \
-            --secret id=firebase_auth_domain,src=firebase_auth_domain \
-            --secret id=firebase_project_id,src=firebase_project_id \
-            --secret id=firebase_storage_bucket,src=firebase_storage_bucket \
-            --secret id=firebase_messaging_sender_id,src=firebase_messaging_sender_id \
-            --secret id=firebase_app_id,src=firebase_app_id \
-            --secret id=firebase_measurement_id,src=firebase_measurement_id \
-            --secret id=api_base_url,src=api_base_url \
-            .
-          docker push $IMAGE_TAG
 
       - name: SSH & Deploy to Azure VM
         uses: appleboy/ssh-action@v0.1.6
@@ -64,6 +23,7 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}
           key:      ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
+            # Update repo
             mkdir -p ~/frontend
             cd ~/frontend
 
@@ -75,24 +35,36 @@ jobs:
             git fetch origin
             git reset --hard origin/main
             
-            # Update the image tag in the existing docker-compose.yml
-            echo "Updating image in docker-compose.yml..."
-            sed -i "s|image: placeholder-image-tag|image: ${{ secrets.ACR_LOGIN_SERVER }}/frontend:${{ github.sha }}|g" docker-compose.yml
+            # Create secrets directory and populate secrets
+            echo "Creating secret files for Docker build..."
+            mkdir -p ./secrets
+            echo "${{ secrets.VITE_FIREBASE_API_KEY }}" > ./secrets/firebase_api_key
+            echo "${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}" > ./secrets/firebase_auth_domain
+            echo "${{ secrets.VITE_FIREBASE_PROJECT_ID }}" > ./secrets/firebase_project_id
+            echo "${{ secrets.VITE_FIREBASE_STORAGE_BUCKET }}" > ./secrets/firebase_storage_bucket
+            echo "${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }}" > ./secrets/firebase_messaging_sender_id
+            echo "${{ secrets.VITE_FIREBASE_APP_ID }}" > ./secrets/firebase_app_id
+            echo "${{ secrets.VITE_FIREBASE_MEASUREMENT_ID }}" > ./secrets/firebase_measurement_id
+            echo "/api" > ./secrets/api_base_url
             
             # Create network if it doesn't exist
             docker network create backend_app-network 2>/dev/null || true
             
-            # Pull and start the container
-            echo "Pulling and starting the container..."
-            docker compose pull frontend
-            docker compose up -d --force-recreate --no-deps frontend
+            # Build and start the container locally
+            echo "Building and starting container..."
+            DOCKER_BUILDKIT=1 docker compose build frontend
+            docker compose up -d --force-recreate frontend
             
             # Verify the container is running
             if docker ps | grep -q frontend; then
               echo "✅ Frontend container is running successfully"
             else
               echo "❌ ERROR: Frontend container failed to start!"
+              # Show logs to debug
+              docker compose logs frontend
+              exit 1
             fi
             
             # Clean up unused images
+            echo "Cleaning up unused images..."
             docker image prune -f
