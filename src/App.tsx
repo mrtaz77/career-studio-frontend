@@ -8,6 +8,8 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Index from './pages/Index';
 import Dashboard from './pages/Dashboard';
 import { CVBuilderPage } from './pages/CVBuilderPage';
+import { PortfolioManagementPage } from './pages/PortfolioManagementPage';
+import { PortfolioBuilderPage } from './pages/PortfolioBuilderPage';
 import NotFound from './pages/NotFound';
 import { AuthProvider } from './context/AuthContext';
 import store from './utils/store';
@@ -38,6 +40,8 @@ const App = () => (
               <Route path="/" element={<Index />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/cv-builder" element={<CVBuilderPage />} />
+              <Route path="/portfolio" element={<PortfolioManagementPage />} />
+              <Route path="/portfolio/builder/:id?" element={<PortfolioBuilderPage />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
