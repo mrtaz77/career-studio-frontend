@@ -4,10 +4,10 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { FileText, Briefcase, User, LogOut, Trash2 } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { FileText, Briefcase, User, LogOut, Trash2, Search } from 'lucide-react';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '../lib/firebase';
-
 import { addUser, removeUser } from '../utils/authSlice';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
@@ -68,9 +68,15 @@ const Dashboard = () => {
   const [cvList, setCvList] = useState([]);
   const [cvListLoading, setCvListLoading] = useState(false);
   const [cvListError, setCvListError] = useState('');
+  const [otherUserList, setOtherUserList] = useState([]);
+  const [otherUserListLoading, setOtherUserListLoading] = useState(false);
+  const [otherUserListError, setOtherUserListError] = useState('');
+
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [cvToDelete, setCvToDelete] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filteredCvList, setFilteredCvList] = useState([]);
 
   const handleOpenCreateCVDialog = () => setShowCreateCVDialog(true);
   const handleCloseCreateCVDialog = () => setShowCreateCVDialog(false);
@@ -109,8 +115,10 @@ const Dashboard = () => {
         setIsDeleting(false);
         return;
       }
-      // Remove the deleted CV from the list
-      setCvList(cvList.filter((cv) => cv.cv_id !== cvToDelete.cv_id));
+      // Remove the deleted CV from both lists
+      const updatedCvList = cvList.filter((cv) => cv.cv_id !== cvToDelete.cv_id);
+      setCvList(updatedCvList);
+      setFilteredCvList(filteredCvList.filter((cv) => cv.cv_id !== cvToDelete.cv_id));
       setShowDeleteDialog(false);
       setCvToDelete(null);
     } catch (err) {
@@ -373,6 +381,7 @@ const Dashboard = () => {
         }
         const data = await res.json();
         setCvList(data);
+        setFilteredCvList(data); // Initialize filtered list with all CVs
       } catch (err) {
         setCvListError('Error fetching CVs');
       } finally {
@@ -381,6 +390,69 @@ const Dashboard = () => {
     };
     fetchCvList();
   }, [activeTab, currentUser]);
+
+  // Filter CVs based on search query
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      // If search is empty, show all CVs
+      setFilteredCvList(cvList);
+    } else {
+      // Filter CVs by title (case-insensitive)
+      const filtered = cvList.filter((cv) =>
+        cv.title.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+      setFilteredCvList(filtered);
+    }
+  }, [searchQuery, cvList]);
+
+  // Fetch other users when "others" tab is active
+  useEffect(() => {
+    const fetchOtherUsers = async () => {
+      if (activeTab !== 'others') return;
+      setOtherUserListLoading(true);
+      setOtherUserListError('');
+      try {
+        if (!currentUser) {
+          setOtherUserListError('You must be logged in to view others.');
+          setOtherUserListLoading(false);
+          return;
+        }
+        const idToken = await currentUser.getIdToken();
+        if (!idToken) {
+          setOtherUserListError('Failed to get authentication token.');
+          setOtherUserListLoading(false);
+          return;
+        }
+        const res = await fetch(`${API_BASE_URL}/api/v1/users/others`, {
+          headers: { Authorization: `Bearer ${idToken}` },
+        });
+        if (!res.ok) {
+          const errorText = await res.text();
+          setOtherUserListError('Failed to fetch other users: ' + errorText);
+          setOtherUserListLoading(false);
+          return;
+        }
+        const data = await res.json();
+        setOtherUserList(data);
+      } catch (err) {
+        console.error('Error fetching other users:', err);
+        setOtherUserListError('Error fetching other users');
+      } finally {
+        setOtherUserListLoading(false);
+      }
+    };
+    fetchOtherUsers();
+  }, [activeTab, currentUser]); // Added dependency array
+
+  // Handle search input change
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
+  };
+
+  // Clear search
+  const clearSearch = () => {
+    setSearchQuery('');
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -481,6 +553,14 @@ const Dashboard = () => {
                   Certificates
                 </Button>
                 <Button
+                  variant={activeTab === 'others' ? 'default' : 'ghost'}
+                  className={`w-full justify-start mb-1 ${activeTab === 'others' ? 'bg-jobathon-600' : ''}`}
+                  onClick={() => setActiveTab('others')}
+                >
+                  <Award size={18} className="mr-2" />
+                  Others
+                </Button>
+                <Button
                   variant={activeTab === 'portfolio' ? 'default' : 'ghost'}
                   className={`w-full justify-start mb-1 ${activeTab === 'portfolio' ? 'bg-jobathon-600' : ''}`}
                   onClick={() => setActiveTab('portfolio')}
@@ -569,14 +649,42 @@ const Dashboard = () => {
                     <CardDescription>Create and manage your professional resumes</CardDescription>
                   </CardHeader>
                   <CardContent>
+                    <div className="mb-6">
+                      <div className="relative">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                        <Input
+                          type="text"
+                          placeholder="Search CVs by title..."
+                          value={searchQuery}
+                          onChange={handleSearchChange}
+                          className="pl-10 pr-10"
+                        />
+                        {searchQuery && (
+                          <button
+                            onClick={clearSearch}
+                            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                          >
+                            x
+                          </button>
+                        )}
+                      </div>
+                      {searchQuery && (
+                        <p className="text-sm text-gray-500 mt-2">
+                          {filteredCvList.length} CV(s) found for "{searchQuery}"
+                        </p>
+                      )}
+                    </div>
+
                     {/* CV List Table */}
                     {cvListLoading ? (
                       <div className="py-8 text-center">Loading CVs...</div>
                     ) : cvListError ? (
                       <div className="py-8 text-center text-red-500">{cvListError}</div>
-                    ) : cvList.length === 0 ? (
+                    ) : filteredCvList.length === 0 ? (
                       <div className="py-8 text-center text-gray-500">
-                        No CVs found. Create your first CV!
+                        {searchQuery
+                          ? `No CVs found matching "${searchQuery}"`
+                          : 'No CVs found. Create your first CV!'}
                       </div>
                     ) : (
                       <div className="overflow-x-auto mb-6">
@@ -592,7 +700,7 @@ const Dashboard = () => {
                             </tr>
                           </thead>
                           <tbody>
-                            {cvList.map((cv) => (
+                            {filteredCvList.map((cv) => (
                               <tr key={cv.cv_id} className="border-b">
                                 <td className="px-4 py-2 border">{cv.title}</td>
                                 <td className="px-4 py-2 border">{cv.template}</td>
@@ -678,6 +786,50 @@ const Dashboard = () => {
               </TabsContent>
               <TabsContent value="education">
                 <EducationView />
+              </TabsContent>
+
+              <TabsContent value="others">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Connect With Others</CardTitle>
+                    <CardDescription>Explore other user profiles</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {/* Other profile List Table */}
+                    {otherUserListLoading ? (
+                      <div className="py-8 text-center">Loading users...</div>
+                    ) : otherUserListError ? (
+                      <div className="py-8 text-center text-red-500">{otherUserListError}</div>
+                    ) : otherUserList.length === 0 ? (
+                      <div className="py-8 text-center text-gray-500">No users found</div>
+                    ) : (
+                      <div className="overflow-x-auto mb-6">
+                        <table className="min-w-full border text-sm">
+                          <thead>
+                            <tr className="bg-gray-100">
+                              <th className="px-4 py-2 border">Username</th>
+                              <th className="px-4 py-2 border">Job Title</th>
+                              <th className="px-4 py-2 border">Company Name</th>
+                              <th className="px-4 py-2 border">Start Date</th>
+                              <th className="px-4 py-2 border">End Date</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {otherUserList.map((profile, index) => (
+                              <tr key={index} className="border-b">
+                                <td className="px-4 py-2 border">{profile.username}</td>
+                                <td className="px-4 py-2 border">{profile.job_title}</td>
+                                <td className="px-4 py-2 border">{profile.company_name}</td>
+                                <td className="px-4 py-2 border">{profile.start_date}</td>
+                                <td className="px-4 py-2 border">{profile.end_date}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
               </TabsContent>
 
               <TabsContent value="certificates">
