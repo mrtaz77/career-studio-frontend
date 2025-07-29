@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { FileText, Briefcase, User, LogOut, Trash2 } from 'lucide-react';
+import { FileText, Briefcase, User, LogOut, Trash2, CalendarDays } from 'lucide-react';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '../lib/firebase';
 
@@ -54,6 +54,17 @@ import {
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
+function formatDate(dateString) {
+  const date = new Date(dateString);
+  return date.toLocaleString(undefined, {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+}
+
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const navigate = useNavigate();
@@ -71,6 +82,7 @@ const Dashboard = () => {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [cvToDelete, setCvToDelete] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [cvTemplate, setCVTemplate] = useState('1'); // 1 for Basic, 2 for Classic
 
   const handleOpenCreateCVDialog = () => setShowCreateCVDialog(true);
   const handleCloseCreateCVDialog = () => setShowCreateCVDialog(false);
@@ -128,7 +140,7 @@ const Dashboard = () => {
 
   const handleCreateCVApi = async () => {
     setIsCreating(true);
-    const payload = { type: cvType, template: 1 };
+    const payload = { type: cvType, template: parseInt(cvTemplate, 10) };
     console.log('Sending create CV request:', payload);
     try {
       if (!currentUser) {
@@ -575,55 +587,66 @@ const Dashboard = () => {
                     ) : cvListError ? (
                       <div className="py-8 text-center text-red-500">{cvListError}</div>
                     ) : cvList.length === 0 ? (
-                      <div className="py-8 text-center text-gray-500">
-                        No CVs found. Create your first CV!
+                      <div className="flex flex-col items-center justify-center py-16 text-center text-gray-500">
+                        <div className="mb-4">
+                          <FileText size={48} className="mx-auto text-blue-200" />
+                        </div>
+                        <div className="text-xl font-semibold mb-2">No CVs yet</div>
+                        <div className="mb-6 text-gray-400 max-w-md mx-auto">
+                          You haven’t created any CVs yet. Click the button below to get started and
+                          build your professional resume in seconds!
+                        </div>
+                        <Button className="px-8 py-3 text-lg" onClick={handleOpenCreateCVDialog}>
+                          <span className="font-semibold">Create Your First CV</span>
+                        </Button>
                       </div>
                     ) : (
-                      <div className="overflow-x-auto mb-6">
-                        <table className="min-w-full border text-sm">
-                          <thead>
-                            <tr className="bg-gray-100">
-                              <th className="px-4 py-2 border">Title</th>
-                              <th className="px-4 py-2 border">Template</th>
-                              <th className="px-4 py-2 border">Version</th>
-                              <th className="px-4 py-2 border">Created At</th>
-                              <th className="px-4 py-2 border">Updated At</th>
-                              <th className="px-4 py-2 border">Action</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {cvList.map((cv) => (
-                              <tr key={cv.cv_id} className="border-b">
-                                <td className="px-4 py-2 border">{cv.title}</td>
-                                <td className="px-4 py-2 border">{cv.template}</td>
-                                <td className="px-4 py-2 border">{cv.version_number}</td>
-                                <td className="px-4 py-2 border">
-                                  {new Date(cv.created_at).toLocaleString()}
-                                </td>
-                                <td className="px-4 py-2 border">
-                                  {new Date(cv.updated_at).toLocaleString()}
-                                </td>
-                                <td className="px-4 py-2 border">
-                                  <div className="flex space-x-2">
-                                    <Button
-                                      size="sm"
-                                      onClick={() => navigate(`/cv-builder?cv_id=${cv.cv_id}`)}
-                                    >
-                                      Edit
-                                    </Button>
-                                    <Button
-                                      size="sm"
-                                      variant="destructive"
-                                      onClick={() => handleDeleteCV(cv)}
-                                    >
-                                      <Trash2 size={16} />
-                                    </Button>
-                                  </div>
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-6">
+                        {cvList.map((cv) => (
+                          <div
+                            key={cv.cv_id}
+                            className="bg-gradient-to-br from-white to-blue-50 rounded-xl shadow-md hover:shadow-2xl transition-shadow duration-300 border border-gray-200 p-6 relative group hover:from-blue-50 hover:to-white hover:border-blue-300 min-h-[200px]"
+                          >
+                            <div className="flex items-center justify-between mb-2">
+                              <h3 className="text-lg font-bold text-gray-800 truncate max-w-[70%]">
+                                {cv.title}
+                              </h3>
+                              <span
+                                className={`px-2 py-1 rounded text-xs font-semibold ${cv.template === 1 ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'}`}
+                              >
+                                {cv.template === 1 ? 'Basic' : 'Classic'}
+                              </span>
+                            </div>
+                            <div className="text-sm text-gray-600 mb-1">
+                              Version: <span className="font-medium">{cv.version_number}</span>
+                            </div>
+                            <div className="text-xs text-gray-400 mb-1 flex items-center gap-1">
+                              <CalendarDays size={14} className="inline-block mr-1 text-blue-300" />
+                              Created: {formatDate(cv.created_at)}
+                            </div>
+                            <div className="text-xs text-gray-400 mb-4 flex items-center gap-1">
+                              <CalendarDays size={14} className="inline-block mr-1 text-blue-300" />
+                              Updated: {formatDate(cv.updated_at)}
+                            </div>
+                            <div className="flex space-x-2 absolute bottom-4 right-4 opacity-90 group-hover:opacity-100 transition-opacity">
+                              <Button
+                                size="sm"
+                                className="bg-blue-600 hover:bg-blue-700 text-white shadow"
+                                onClick={() => navigate(`/cv-builder?cv_id=${cv.cv_id}`)}
+                              >
+                                Edit
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                className="shadow"
+                                onClick={() => handleDeleteCV(cv)}
+                              >
+                                <Trash2 size={16} />
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     )}
                     {/* Create New CV Button and Dialog remain unchanged */}
@@ -656,12 +679,15 @@ const Dashboard = () => {
                         </div>
                         <div className="my-2">
                           <label className="block mb-2 font-medium">Template</label>
-                          <input
-                            type="text"
-                            value="Basic"
-                            disabled
-                            className="w-full border rounded px-3 py-2 bg-gray-100"
-                          />
+                          <select
+                            id="cv-template"
+                            className="w-full border rounded px-3 py-2"
+                            value={cvTemplate}
+                            onChange={(e) => setCVTemplate(e.target.value)}
+                          >
+                            <option value="1">Basic</option>
+                            <option value="2">Classic</option>
+                          </select>
                         </div>
                         <DialogFooter>
                           <Button onClick={handleCreateCVApi} disabled={!cvType || isCreating}>

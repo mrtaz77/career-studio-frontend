@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { CVForm } from '@/components/cv/CVForm';
 import { CVPreview } from '@/components/cv/CVPreview';
@@ -108,6 +108,29 @@ function sanitizeCVData(cvData: CVData) {
   };
 }
 
+// Utility function to parse backend HTML into sections
+function parseBackendSections(html: string) {
+  if (!html) return {};
+  const parser = new window.DOMParser();
+  const doc = parser.parseFromString(html, 'text/html');
+  const sections = Array.from(doc.querySelectorAll('section'));
+  const result: { [key: string]: string } = {};
+  const sectionNames = [
+    'education',
+    'experience',
+    'projects',
+    'technicalSkills',
+    'publications',
+    'certifications',
+  ];
+  sections.forEach((section, idx) => {
+    result[sectionNames[idx] || `section${idx}`] = section.outerHTML;
+  });
+  const header = doc.querySelector('header');
+  if (header) result.header = header.outerHTML;
+  return result;
+}
+
 export const CVBuilderPage = () => {
   const navigate = useNavigate();
   const { currentUser } = useAuth();
@@ -123,6 +146,12 @@ export const CVBuilderPage = () => {
   const [isDownloading, setIsDownloading] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [downloadSuccess, setDownloadSuccess] = useState(false);
+  const [previewTemplate, setPreviewTemplate] = useState<number | null>(null);
+  const [backendHtmlPreview, setBackendHtmlPreview] = useState('');
+  const [backendPreviewLoading, setBackendPreviewLoading] = useState(false);
+  const [previewMode, setPreviewMode] = useState<'react' | 'backend'>('react');
+  const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
+  const [backendSections, setBackendSections] = useState({});
 
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -242,7 +271,7 @@ export const CVBuilderPage = () => {
     }
   };
 
-  const handlePreview = async () => {
+  const handlePreview = async (templateOverride?: number) => {
     setPreviewLoading(true);
     setPreviewError('');
     setShowPreview(true);
@@ -253,11 +282,15 @@ export const CVBuilderPage = () => {
     }
     const idToken = await currentUser.getIdToken();
     const sanitized = sanitizeCVData(cvData);
-    console.log('Sanitized CV data for preview:', sanitized);
-    const payload = {
+    const payload: any = {
       cv_id: Number(cvId),
       draft_content: sanitized.save_content,
     };
+    if (typeof templateOverride === 'number') {
+      payload.template = templateOverride;
+    } else if (previewTemplate !== null) {
+      payload.template = previewTemplate;
+    }
     try {
       const res = await fetch(`${API_BASE_URL}/api/v1/cv/render`, {
         method: 'POST',
@@ -268,7 +301,6 @@ export const CVBuilderPage = () => {
         body: JSON.stringify(payload),
       });
       const data = await res.json();
-      console.log('CV render response:', data);
       if (res.ok && data.html_content) {
         setPreviewHtml(data.html_content);
       } else {
@@ -280,6 +312,60 @@ export const CVBuilderPage = () => {
     } finally {
       setPreviewLoading(false);
     }
+  };
+
+  // Fetch backend preview (debounced)
+  const fetchBackendPreview = async (cvDataOverride = null, templateOverride = null) => {
+    setBackendPreviewLoading(true);
+    const dataToSend = cvDataOverride || cvData;
+    const templateToSend = templateOverride || cvData.template || 1;
+    const sanitized = sanitizeCVData(dataToSend);
+    const payload = {
+      cv_id: Number(cvId),
+      draft_content: sanitized.save_content,
+      template: templateToSend,
+    };
+    const idToken = currentUser ? await currentUser.getIdToken() : undefined;
+    const res = await fetch(`${API_BASE_URL}/api/v1/cv/render`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(idToken ? { Authorization: `Bearer ${idToken}` } : {}),
+      },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    setBackendHtmlPreview(data.html_content || '');
+    console.log('BACKEND_RENDERED_HTML:', data.html_content); // Print the full HTML to the console
+    setBackendPreviewLoading(false);
+  };
+
+  // Fetch backend preview on load and on edit (debounced)
+  useEffect(() => {
+    if (!cvId) return;
+    if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
+    debounceTimeout.current = setTimeout(() => {
+      fetchBackendPreview();
+    }, 500);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cvData, cvId, cvData.template]);
+
+  // Fetch backend preview immediately when template changes
+  const handleTemplateChange = async (templateId: number) => {
+    if (!currentUser || !cvId) return;
+    // Update template in backend
+    const idToken = await currentUser.getIdToken();
+    await fetch(`${API_BASE_URL}/api/v1/cv/${cvId}/template`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${idToken}`,
+      },
+      body: JSON.stringify({ template: templateId }),
+    });
+    setCvData((prev) => ({ ...prev, template: templateId }));
+    handlePreview(templateId); // Refresh preview with new template
+    fetchBackendPreview(null, templateId); // Also refresh backend preview
   };
 
   // Fetch user profile and education data when component mounts
@@ -404,6 +490,48 @@ export const CVBuilderPage = () => {
     };
     fetchAllData();
   }, [currentUser, cvId, API_BASE_URL]);
+
+  useEffect(() => {
+    if (backendHtmlPreview) {
+      setBackendSections(parseBackendSections(backendHtmlPreview));
+    }
+  }, [backendHtmlPreview]);
+
+  useEffect(() => {
+    let styleEl, linkEl;
+    if (previewMode === 'backend' && backendSections.style) {
+      // Remove previous
+      const prevStyle = document.getElementById('backend-template-style');
+      if (prevStyle) prevStyle.remove();
+      const prevLink = document.getElementById('backend-template-font');
+      if (prevLink) prevLink.remove();
+
+      // Extract @import
+      const importMatch = backendSections.style.match(/@import url\(([^)]+)\);/);
+      if (importMatch) {
+        linkEl = document.createElement('link');
+        linkEl.id = 'backend-template-font';
+        linkEl.rel = 'stylesheet';
+        linkEl.href = importMatch[1].replace(/['"]/g, '');
+        document.head.appendChild(linkEl);
+      }
+
+      // Remove @import from style
+      const css = backendSections.style
+        .replace(/<style[^>]*>|<\/style>/g, '')
+        .replace(/@import[^;]+;/, '');
+      styleEl = document.createElement('style');
+      styleEl.id = 'backend-template-style';
+      styleEl.innerHTML = css;
+      document.head.appendChild(styleEl);
+    }
+    return () => {
+      const prevStyle = document.getElementById('backend-template-style');
+      if (prevStyle) prevStyle.remove();
+      const prevLink = document.getElementById('backend-template-font');
+      if (prevLink) prevLink.remove();
+    };
+  }, [previewMode, backendSections.style]);
 
   const handleDataChange = (newData: Partial<CVData['save_content']>) => {
     setCvData((prev) => ({
@@ -548,8 +676,8 @@ export const CVBuilderPage = () => {
         title={cvData.save_content.title}
         onTitleChange={handleTitleChange}
         onShare={handleShare}
-        onVersions={handleVersions}
-        onLayouts={handleLayouts}
+        onTemplateChange={handleTemplateChange}
+        currentTemplate={cvData.template || 1}
         isLoading={isLoading}
       />
 
@@ -585,7 +713,33 @@ export const CVBuilderPage = () => {
             className="bg-gray-50/90 backdrop-blur-sm shadow-inner"
           >
             <div className="h-full overflow-y-auto">
-              <CVPreview data={cvData.save_content} isLoading={isLoading} />
+              <div className="flex justify-end mb-2">
+                <button
+                  className={`px-3 py-1 rounded-l border ${previewMode === 'react' ? 'bg-blue-600 text-white' : 'bg-white text-blue-600 border-blue-600'}`}
+                  onClick={() => setPreviewMode('react')}
+                >
+                  Live Preview
+                </button>
+                <button
+                  className={`px-3 py-1 rounded-r border-l-0 border ${previewMode === 'backend' ? 'bg-purple-600 text-white' : 'bg-white text-purple-600 border-purple-600'}`}
+                  onClick={() => setPreviewMode('backend')}
+                >
+                  Template Preview
+                </button>
+              </div>
+              {previewMode === 'react' ? (
+                <CVPreview data={cvData.save_content} isLoading={isLoading} />
+              ) : backendPreviewLoading ? (
+                <div className="flex items-center justify-center h-full py-8 text-lg text-gray-400">
+                  Loading template preview...
+                </div>
+              ) : (
+                <iframe
+                  title="Template Preview"
+                  style={{ width: '100%', height: '100%', border: 'none', background: 'white' }}
+                  srcDoc={backendHtmlPreview}
+                />
+              )}
             </div>
           </Panel>
         </PanelGroup>
@@ -594,6 +748,25 @@ export const CVBuilderPage = () => {
         <DialogContent className="max-w-5xl h-[80vh] overflow-auto">
           <DialogHeader>
             <DialogTitle>CV Preview</DialogTitle>
+            <div className="flex items-center gap-4 mt-2">
+              <label htmlFor="preview-template" className="font-medium text-sm">
+                Template:
+              </label>
+              <select
+                id="preview-template"
+                className="border rounded px-2 py-1 text-sm"
+                value={previewTemplate !== null ? previewTemplate : cvData.template || 1}
+                onChange={async (e) => {
+                  const val = parseInt(e.target.value, 10);
+                  setPreviewTemplate(val);
+                  await handlePreview(val);
+                }}
+              >
+                <option value={1}>Basic</option>
+                <option value={2}>Classic</option>
+              </select>
+              <span className="text-xs text-gray-400">(Temporary preview only)</span>
+            </div>
             <DialogClose asChild>
               <Button variant="outline" className="absolute right-4 top-4">
                 Close
