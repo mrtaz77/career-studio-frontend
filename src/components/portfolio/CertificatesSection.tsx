@@ -1,4 +1,8 @@
-import { useState } from 'react';
+/* eslint-disable prettier/prettier */
+import { useState, useCallback } from 'react';
+import { useEffect } from 'react';
+import { useAuth } from '@/context/AuthContext';
+import { useToast } from '../ui/use-toast';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,26 +11,66 @@ import { Plus, Trash2, Award, ExternalLink } from 'lucide-react';
 import { PortfolioCertificate } from '@/types/portfolio';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ChevronDown, ChevronRight } from 'lucide-react';
+import { on } from 'events';
+import { set } from 'date-fns';
 
 interface CertificatesSectionProps {
   data: PortfolioCertificate[];
   onChange: (data: PortfolioCertificate[]) => void;
 }
-
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 export const CertificatesSection = ({ data, onChange }: CertificatesSectionProps) => {
   const [openItems, setOpenItems] = useState<string[]>([]);
+  const [certificates, setCertificates] = useState<PortfolioCertificate[]>([]);
 
-  const addCertificate = () => {
-    const newCertificate: PortfolioCertificate = {
-      id: Date.now().toString(),
-      name: '',
-      issuer: '',
-      issueDate: '',
-      credentialUrl: '',
-    };
-    onChange([...data, newCertificate]);
-    setOpenItems([...openItems, newCertificate.id!]);
-  };
+  // const addCertificate = () => {
+  //   const newCertificate: PortfolioCertificate = {
+  //     id: Date.now().toString(),
+  //     name: '',
+  //     issuer: '',
+  //     issueDate: '',
+  //     credentialUrl: '',
+  //   };
+  //   onChange([...data, newCertificate]);
+  //   setOpenItems([...openItems, newCertificate.id!]);
+  // };
+
+  const { currentUser } = useAuth();
+  const { toast } = useToast();
+
+  const getIdToken = useCallback(async () => {
+    return currentUser ? await currentUser.getIdToken() : null;
+  }, [currentUser]);
+
+  const fetchCertificates = useCallback(async () => {
+    try {
+      const idToken = await getIdToken();
+      if (!idToken) return;
+      const res = await fetch(`${API_BASE_URL}/api/v1/certificate`, {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${idToken}`,
+        },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setCertificates(data);
+        //console.log('Certificates fetched successfully:',await res.json());
+
+        //  console.log('Certificates fetched successfully:', data);
+        setOpenItems(data.map((cert) => cert.id!));
+        onChange(data);
+      }
+    } catch (_err) {
+      // console.error(_err); // Silenced for production
+    } finally {
+      //setLoading(false);
+    }
+  }, [getIdToken]);
+
+  useEffect(() => {
+    fetchCertificates();
+  }, [fetchCertificates]);
 
   const updateCertificate = (id: string, field: keyof PortfolioCertificate, value: string) => {
     const updated = data.map((cert) => (cert.id === id ? { ...cert, [field]: value } : cert));
@@ -50,16 +94,17 @@ export const CertificatesSection = ({ data, onChange }: CertificatesSectionProps
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
             <Award className="h-5 w-5" />
-            Certificates ({data.length})
+            Certificates ({certificates.length})
           </CardTitle>
-          <Button onClick={addCertificate} className="bg-jobathon-600 hover:bg-jobathon-700">
+          {/* <Button onClick={addCertificate} className="bg-jobathon-600 hover:bg-jobathon-700">
             <Plus className="h-4 w-4 mr-2" />
             Add Certificate
           </Button>
+        */}
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        {data.length === 0 ? (
+        {certificates.length === 0 ? (
           <div className="text-center py-8 text-gray-500">
             <Award className="h-12 w-12 mx-auto mb-4 text-gray-300" />
             <p>No certificates added yet</p>
@@ -68,13 +113,13 @@ export const CertificatesSection = ({ data, onChange }: CertificatesSectionProps
             </p>
           </div>
         ) : (
-          data.map((certificate) => (
+          certificates.map((certificate) => (
             <Collapsible
               key={certificate.id}
               open={openItems.includes(certificate.id!)}
               onOpenChange={() => toggleItem(certificate.id!)}
             >
-              <div className="border border-gray-200 rounded-lg">
+              {/* <div className="border border-gray-200 rounded-lg">
                 <CollapsibleTrigger asChild>
                   <div className="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50">
                     <div className="flex items-center gap-3">
@@ -177,7 +222,37 @@ export const CertificatesSection = ({ data, onChange }: CertificatesSectionProps
                     </div>
                   </div>
                 </CollapsibleContent>
-              </div>
+              </div> */}
+              <CardContent>
+                {/* ... existing list rendering ... */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {certificates.map((cert) => (
+                    <div key={cert.id} className="border rounded p-4 hover:shadow">
+                      <embed
+                        src={cert.link}
+                        type="application/pdf"
+                        width="100%"
+                        height="200px"
+                        className="rounded bg-gray-100 mb-2"
+                      />
+                      <div className="text-right">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => window.open(cert.link, '_blank')}
+                        >
+                          View PDF
+                        </Button>
+                      </div>
+
+                      <h3 className="font-medium text-sm mb-1 line-clamp-2">{cert.title}</h3>
+                      <p className="text-xs text-gray-500 mb-1">{cert.issuer}</p>
+                      <p className="text-xs text-gray-400">{cert.issued_date}</p>
+                      <div className="flex space-x-2 mt-3"></div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
             </Collapsible>
           ))
         )}

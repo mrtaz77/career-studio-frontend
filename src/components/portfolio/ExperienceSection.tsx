@@ -23,23 +23,25 @@ export const ExperienceSection = ({ data, onChange }: ExperienceSectionProps) =>
       id: Date.now().toString(),
       title: '',
       company: '',
+      companyUrl: '',
+      industry: '',
       location: '',
       startDate: '',
       endDate: '',
       description: '',
       current: false,
     };
-    onChange([...data, newExperience]);
+    onChange([...(data || []), newExperience]);
     setOpenItems([...openItems, newExperience.id!]);
   };
 
   const updateExperience = (id: string, field: keyof PortfolioExperience, value: any) => {
-    const updated = data.map((exp) => (exp.id === id ? { ...exp, [field]: value } : exp));
+    const updated = (data || []).map((exp) => (exp.id === id ? { ...exp, [field]: value } : exp));
     onChange(updated);
   };
 
   const removeExperience = (id: string) => {
-    onChange(data.filter((exp) => exp.id !== id));
+    onChange((data || []).filter((exp) => exp.id !== id));
     setOpenItems(openItems.filter((item) => item !== id));
   };
 
@@ -55,7 +57,7 @@ export const ExperienceSection = ({ data, onChange }: ExperienceSectionProps) =>
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
             <Briefcase className="h-5 w-5" />
-            Work Experience ({data.length})
+            Work Experience ({data?.length})
           </CardTitle>
           <Button onClick={addExperience} className="bg-jobathon-600 hover:bg-jobathon-700">
             <Plus className="h-4 w-4 mr-2" />
@@ -64,14 +66,14 @@ export const ExperienceSection = ({ data, onChange }: ExperienceSectionProps) =>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        {data.length === 0 ? (
+        {data?.length === 0 ? (
           <div className="text-center py-8 text-gray-500">
             <Briefcase className="h-12 w-12 mx-auto mb-4 text-gray-300" />
             <p>No work experience added yet</p>
             <p className="text-sm">Click "Add Experience" to get started</p>
           </div>
         ) : (
-          data.map((experience) => (
+          data?.map((experience) => (
             <Collapsible
               key={experience.id}
               open={openItems.includes(experience.id!)}
@@ -137,17 +139,48 @@ export const ExperienceSection = ({ data, onChange }: ExperienceSectionProps) =>
                       </div>
                     </div>
 
-                    <div>
-                      <Label htmlFor={`location-${experience.id}`}>Location</Label>
-                      <Input
-                        id={`location-${experience.id}`}
-                        value={experience.location}
-                        onChange={(e) =>
-                          updateExperience(experience.id!, 'location', e.target.value)
-                        }
-                        placeholder="San Francisco, CA"
-                        className="mt-1"
-                      />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor={`companyUrl-${experience.id}`}>Company Website</Label>
+                        <Input
+                          id={`companyUrl-${experience.id}`}
+                          type="url"
+                          value={experience.companyUrl || ''}
+                          onChange={(e) =>
+                            updateExperience(experience.id!, 'companyUrl', e.target.value)
+                          }
+                          placeholder="https://www.company.com"
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor={`industry-${experience.id}`}>Industry</Label>
+                        <Input
+                          id={`industry-${experience.id}`}
+                          value={experience.industry || ''}
+                          onChange={(e) =>
+                            updateExperience(experience.id!, 'industry', e.target.value)
+                          }
+                          placeholder="Technology"
+                          className="mt-1"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor={`location-${experience.id}`}>Location</Label>
+                        <Input
+                          id={`location-${experience.id}`}
+                          value={experience.location}
+                          onChange={(e) =>
+                            updateExperience(experience.id!, 'location', e.target.value)
+                          }
+                          placeholder="San Francisco, CA"
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>{/* Empty space for layout balance */}</div>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

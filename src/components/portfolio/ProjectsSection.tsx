@@ -31,7 +31,7 @@ export const ProjectsSection = ({ data, onChange }: ProjectsSectionProps) => {
       image: '',
       featured: false,
     };
-    onChange([...data, newProject]);
+    onChange([...(data || []), newProject]);
     setOpenItems([...openItems, newProject.id!]);
   };
 
@@ -40,14 +40,14 @@ export const ProjectsSection = ({ data, onChange }: ProjectsSectionProps) => {
     field: keyof PortfolioProject,
     value: string | boolean | string[]
   ) => {
-    const updated = data.map((project) =>
+    const updated = (data || []).map((project) =>
       project.id === id ? { ...project, [field]: value } : project
     );
     onChange(updated);
   };
 
   const removeProject = (id: string) => {
-    onChange(data.filter((project) => project.id !== id));
+    onChange((data || []).filter((project) => project.id !== id));
     setOpenItems(openItems.filter((item) => item !== id));
   };
 
@@ -55,7 +55,7 @@ export const ProjectsSection = ({ data, onChange }: ProjectsSectionProps) => {
     const tech = newTech[projectId]?.trim();
     if (!tech) return;
 
-    const project = data.find((p) => p.id === projectId);
+    const project = (data || []).find((p) => p.id === projectId);
     if (project && !project.technologies.includes(tech)) {
       updateProject(projectId, 'technologies', [...project.technologies, tech]);
     }
@@ -63,7 +63,7 @@ export const ProjectsSection = ({ data, onChange }: ProjectsSectionProps) => {
   };
 
   const removeTechnology = (projectId: string, tech: string) => {
-    const project = data.find((p) => p.id === projectId);
+    const project = (data || []).find((p) => p.id === projectId);
     if (project) {
       updateProject(
         projectId,
@@ -85,7 +85,7 @@ export const ProjectsSection = ({ data, onChange }: ProjectsSectionProps) => {
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
             <FolderOpen className="h-5 w-5" />
-            Projects ({data.length})
+            Projects ({data?.length})
           </CardTitle>
           <Button onClick={addProject} className="bg-jobathon-600 hover:bg-jobathon-700">
             <Plus className="h-4 w-4 mr-2" />
@@ -94,14 +94,14 @@ export const ProjectsSection = ({ data, onChange }: ProjectsSectionProps) => {
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        {data.length === 0 ? (
+        {data?.length === 0 ? (
           <div className="text-center py-8 text-gray-500">
             <FolderOpen className="h-12 w-12 mx-auto mb-4 text-gray-300" />
             <p>No projects added yet</p>
-            <p className="text-sm">Click "Add Project" to showcase your work</p>
+            <p className="text-sm">Click &quot;Add Project&quot; to showcase your work</p>
           </div>
         ) : (
-          data.map((project) => (
+          data?.map((project) => (
             <Collapsible
               key={project.id}
               open={openItems.includes(project.id!)}

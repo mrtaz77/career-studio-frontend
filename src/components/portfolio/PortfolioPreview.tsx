@@ -14,9 +14,9 @@ const TamimTemplate = ({ portfolio, theme }: { portfolio: Portfolio; theme: stri
       {/* Header Section */}
       <div className="text-center mb-12">
         <div className="w-32 h-32 mx-auto mb-6 rounded-full bg-gray-200 overflow-hidden">
-          {portfolio.content.personalInfo.avatar ? (
+          {portfolio.content.personalInfo.img ? (
             <img
-              src={portfolio.content.personalInfo.avatar}
+              src={portfolio.content.personalInfo.img}
               alt={portfolio.content.personalInfo.name}
               className="w-full h-full object-cover"
             />
@@ -30,7 +30,7 @@ const TamimTemplate = ({ portfolio, theme }: { portfolio: Portfolio; theme: stri
           {portfolio.content.personalInfo.name}
         </h1>
         <p className="text-xl text-gray-600 mb-4">{portfolio.content.personalInfo.title}</p>
-        <p className="text-gray-700 max-w-2xl mx-auto">{portfolio.content.personalInfo.summary}</p>
+        <p className="text-gray-700 max-w-2xl mx-auto">{portfolio.content.personalInfo.bio}</p>
       </div>
 
       {/* Experience Section */}
@@ -43,7 +43,7 @@ const TamimTemplate = ({ portfolio, theme }: { portfolio: Portfolio; theme: stri
                 <h3 className="text-lg font-semibold text-gray-900">{exp.title}</h3>
                 <p className="text-blue-600 font-medium">{exp.company}</p>
                 <p className="text-sm text-gray-500 mb-2">
-                  {exp.startDate} - {exp.current ? 'Present' : exp.endDate}
+                  {exp.start_date} - {exp.current ? 'Present' : exp.end_date}
                 </p>
                 <p className="text-gray-700">{exp.description}</p>
               </div>
@@ -144,9 +144,9 @@ const MahirTemplate = ({ portfolio, theme }: { portfolio: Portfolio; theme: stri
         <div className="lg:w-1/3 bg-gray-900 text-white p-8">
           <div className="text-center mb-8">
             <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-gray-700 overflow-hidden">
-              {portfolio.content.personalInfo.avatar ? (
+              {portfolio.content.personalInfo.img ? (
                 <img
-                  src={portfolio.content.personalInfo.avatar}
+                  src={portfolio.content.personalInfo.img}
                   alt={portfolio.content.personalInfo.name}
                   className="w-full h-full object-cover"
                 />
@@ -208,9 +208,7 @@ const MahirTemplate = ({ portfolio, theme }: { portfolio: Portfolio; theme: stri
           {/* About */}
           <div className="mb-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">About Me</h2>
-            <p className="text-gray-700 leading-relaxed">
-              {portfolio.content.personalInfo.summary}
-            </p>
+            <p className="text-gray-700 leading-relaxed">{portfolio.content.personalInfo.bio}</p>
           </div>
 
           {/* Experience */}
@@ -223,7 +221,7 @@ const MahirTemplate = ({ portfolio, theme }: { portfolio: Portfolio; theme: stri
                     <h3 className="text-lg font-semibold text-gray-900">{exp.title}</h3>
                     <p className="text-purple-600 font-medium">{exp.company}</p>
                     <p className="text-sm text-gray-500 mb-3">
-                      {exp.startDate} - {exp.current ? 'Present' : exp.endDate}
+                      {exp.start_date} - {exp.current ? 'Present' : exp.end_date}
                     </p>
                     <p className="text-gray-700">{exp.description}</p>
                   </div>
@@ -269,9 +267,9 @@ const MushtariTemplate = ({ portfolio, theme }: { portfolio: Portfolio; theme: s
       <div className="bg-white rounded-2xl shadow-xl p-8 mb-8">
         <div className="flex flex-col md:flex-row items-center gap-8">
           <div className="w-32 h-32 rounded-full bg-gradient-to-br from-blue-400 to-purple-600 overflow-hidden flex-shrink-0">
-            {portfolio.content.personalInfo.avatar ? (
+            {portfolio.content.personalInfo.img ? (
               <img
-                src={portfolio.content.personalInfo.avatar}
+                src={portfolio.content.personalInfo.img}
                 alt={portfolio.content.personalInfo.name}
                 className="w-full h-full object-cover"
               />
@@ -286,7 +284,7 @@ const MushtariTemplate = ({ portfolio, theme }: { portfolio: Portfolio; theme: s
               {portfolio.content.personalInfo.name}
             </h1>
             <p className="text-xl text-blue-600 mb-4">{portfolio.content.personalInfo.title}</p>
-            <p className="text-gray-700">{portfolio.content.personalInfo.summary}</p>
+            <p className="text-gray-700">{portfolio.content.personalInfo.bio}</p>
           </div>
         </div>
       </div>
@@ -306,7 +304,7 @@ const MushtariTemplate = ({ portfolio, theme }: { portfolio: Portfolio; theme: s
                     <h3 className="text-lg font-semibold text-gray-900">{exp.title}</h3>
                     <p className="text-blue-600 font-medium">{exp.company}</p>
                     <p className="text-sm text-gray-500 mb-2">
-                      {exp.startDate} - {exp.current ? 'Present' : exp.endDate}
+                      {exp.start_date} - {exp.current ? 'Present' : exp.end_date}
                     </p>
                     <p className="text-gray-700">{exp.description}</p>
                   </div>
@@ -411,7 +409,7 @@ const MushtariTemplate = ({ portfolio, theme }: { portfolio: Portfolio; theme: s
                     <h3 className="font-semibold text-gray-900">{edu.degree}</h3>
                     <p className="text-blue-600">{edu.institution}</p>
                     <p className="text-sm text-gray-500">
-                      {edu.startDate} - {edu.endDate}
+                      {edu.start_date} - {edu.end_date}
                     </p>
                     {edu.gpa && <p className="text-sm text-gray-600">GPA: {edu.gpa}</p>}
                   </div>

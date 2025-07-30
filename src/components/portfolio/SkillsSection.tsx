@@ -54,29 +54,32 @@ export const SkillsSection = ({ data, onChange }: SkillsSectionProps) => {
       level: newSkill.level,
     };
 
-    onChange([...data, skill]);
+    onChange([...(data || []), skill]);
     setNewSkill({ name: '', category: '', level: 'intermediate' });
   };
 
   const removeSkill = (id: string) => {
-    onChange(data.filter((skill) => skill.id !== id));
+    onChange((data || []).filter((skill) => skill.id !== id));
   };
 
   const updateSkill = (id: string, field: keyof PortfolioSkill, value: string) => {
-    const updated = data.map((skill) => (skill.id === id ? { ...skill, [field]: value } : skill));
+    const updated = (data || []).map((skill) =>
+      skill.id === id ? { ...skill, [field]: value } : skill
+    );
     onChange(updated);
   };
 
-  const groupedSkills = data.reduce(
-    (acc, skill) => {
-      if (!acc[skill.category]) {
-        acc[skill.category] = [];
-      }
-      acc[skill.category].push(skill);
-      return acc;
-    },
-    {} as Record<string, PortfolioSkill[]>
-  );
+  const groupedSkills =
+    data?.reduce(
+      (acc, skill) => {
+        if (!acc[skill.category]) {
+          acc[skill.category] = [];
+        }
+        acc[skill.category].push(skill);
+        return acc;
+      },
+      {} as Record<string, PortfolioSkill[]>
+    ) || {};
 
   const getLevelColor = (level: string) => {
     switch (level) {
@@ -98,7 +101,7 @@ export const SkillsSection = ({ data, onChange }: SkillsSectionProps) => {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Award className="h-5 w-5" />
-          Skills ({data.length})
+          Skills ({data?.length})
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -161,7 +164,7 @@ export const SkillsSection = ({ data, onChange }: SkillsSectionProps) => {
         </div>
 
         {/* Skills Display */}
-        {data.length === 0 ? (
+        {data?.length === 0 ? (
           <div className="text-center py-8 text-gray-500">
             <Award className="h-12 w-12 mx-auto mb-4 text-gray-300" />
             <p>No skills added yet</p>

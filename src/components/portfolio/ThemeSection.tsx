@@ -10,8 +10,8 @@ interface ThemeSectionProps {
 
 const themes: PortfolioTheme[] = [
   {
-    id: 'modern-blue',
-    name: 'Modern Blue',
+    id: 'classic',
+    name: 'classic',
     description: 'Clean and professional with blue accents',
     preview: 'bg-gradient-to-br from-blue-500 to-blue-700',
     layout: 'professional',
@@ -19,13 +19,13 @@ const themes: PortfolioTheme[] = [
       primary: '#3B82F6',
       secondary: '#1E40AF',
       accent: '#60A5FA',
-      background: '#FFFFFF',
+      background: '#000000',
       text: '#1F2937',
     },
   },
   {
-    id: 'elegant-purple',
-    name: 'Elegant Purple',
+    id: 'modern',
+    name: 'modern',
     description: 'Sophisticated design with purple gradients',
     preview: 'bg-gradient-to-br from-purple-500 to-purple-700',
     layout: 'creative',
@@ -33,7 +33,7 @@ const themes: PortfolioTheme[] = [
       primary: '#8B5CF6',
       secondary: '#7C3AED',
       accent: '#A78BFA',
-      background: '#FFFFFF',
+      background: '#000000',
       text: '#1F2937',
     },
   },
