@@ -57,6 +57,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { toast } from 'sonner';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -92,7 +93,17 @@ const Dashboard = () => {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [cvToDelete, setCvToDelete] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // Portfolio states
+  const [portfolioList, setPortfolioList] = useState([]);
+  const [portfolioListLoading, setPortfolioListLoading] = useState(false);
+  const [portfolioListError, setPortfolioListError] = useState('');
+  const [showDeletePortfolioDialog, setShowDeletePortfolioDialog] = useState(false);
+  const [portfolioToDelete, setPortfolioToDelete] = useState(null);
+  const [isDeletingPortfolio, setIsDeletingPortfolio] = useState(false);
+
   const [cvTemplate, setCVTemplate] = useState('1'); // 1 for Basic, 2 for Classic
+
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredCvList, setFilteredCvList] = useState([]);
 
@@ -155,10 +166,71 @@ const Dashboard = () => {
     setCvToDelete(null);
   };
 
+  // Portfolio handlers
+  const handleDeletePortfolio = (portfolio) => {
+    setPortfolioToDelete(portfolio);
+    setShowDeletePortfolioDialog(true);
+  };
+
+  const handleConfirmDeletePortfolio = async () => {
+    if (!portfolioToDelete) return;
+
+    setIsDeletingPortfolio(true);
+    try {
+      if (!currentUser) {
+        alert('You must be logged in to delete a portfolio.');
+        setIsDeletingPortfolio(false);
+        return;
+      }
+      const idToken = await currentUser.getIdToken();
+      if (!idToken) {
+        alert('Failed to get authentication token.');
+        setIsDeletingPortfolio(false);
+        return;
+      }
+      const res = await fetch(
+        `${API_BASE_URL}/api/v1/portfolio/unpublish/${portfolioToDelete.portfolio_id}`,
+        {
+          method: 'PUT',
+          headers: {
+            Authorization: `Bearer ${idToken}`,
+          },
+        }
+      );
+      if (!res.ok) {
+        const errorText = await res.text();
+        alert('Failed to delete portfolio: ' + errorText);
+        setIsDeletingPortfolio(false);
+        return;
+      }
+      // Remove the deleted portfolio from the list
+      setPortfolioList(
+        portfolioList.filter(
+          (portfolio) => portfolio.portfolio_id !== portfolioToDelete.portfolio_id
+        )
+      );
+
+      setShowDeletePortfolioDialog(false);
+      setPortfolioToDelete(null);
+      toast.success('Portfolio deleted successfully.');
+    } catch (err) {
+      alert('Error deleting portfolio');
+    } finally {
+      setIsDeletingPortfolio(false);
+    }
+  };
+
+  const handleCancelDeletePortfolio = () => {
+    setShowDeletePortfolioDialog(false);
+    setPortfolioToDelete(null);
+  };
+
   const handleCreateCVApi = async () => {
     setIsCreating(true);
+
     const payload = { type: cvType, template: parseInt(cvTemplate, 10) };
     console.log('Sending create CV request:', payload);
+
     try {
       if (!currentUser) {
         alert('You must be logged in to create a CV.');
@@ -187,7 +259,7 @@ const Dashboard = () => {
         return;
       }
       const data = await res.json();
-      console.log('Create CV response:', data);
+      // console.log('Create CV response:', data);
       if (data.cv_id) {
         setShowCreateCVDialog(false);
         navigate(`/cv-builder?cv_id=${data.cv_id}`);
@@ -410,6 +482,44 @@ const Dashboard = () => {
       }
     };
     fetchCvList();
+  }, [activeTab, currentUser]);
+
+  // Fetch Portfolio list when Portfolio tab is active
+  useEffect(() => {
+    const fetchPortfolioList = async () => {
+      if (activeTab !== 'portfolio') return;
+      setPortfolioListLoading(true);
+      setPortfolioListError('');
+      try {
+        if (!currentUser) {
+          setPortfolioListError('You must be logged in to view your portfolios.');
+          setPortfolioListLoading(false);
+          return;
+        }
+        const idToken = await currentUser.getIdToken();
+        if (!idToken) {
+          setPortfolioListError('Failed to get authentication token.');
+          setPortfolioListLoading(false);
+          return;
+        }
+        const res = await fetch(`${API_BASE_URL}/api/v1/portfolio/list`, {
+          headers: { Authorization: `Bearer ${idToken}` },
+        });
+        if (!res.ok) {
+          const errorText = await res.text();
+          setPortfolioListError('Failed to fetch portfolios: ' + errorText);
+          setPortfolioListLoading(false);
+          return;
+        }
+        const data = await res.json();
+        setPortfolioList(data);
+      } catch (err) {
+        setPortfolioListError('Error fetching portfolios');
+      } finally {
+        setPortfolioListLoading(false);
+      }
+    };
+    fetchPortfolioList();
   }, [activeTab, currentUser]);
 
   // Filter CVs based on search query
@@ -708,7 +818,7 @@ const Dashboard = () => {
                       </div>
                       {searchQuery && (
                         <p className="text-sm text-gray-500 mt-2">
-                          {filteredCvList.length} CV(s) found for "{searchQuery}"
+                          {filteredCvList.length} CV(s) found for &quot;{searchQuery}&quot;
                         </p>
                       )}
                     </div>
@@ -899,50 +1009,86 @@ const Dashboard = () => {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                      <div className="border border-gray-200 rounded-lg p-4 flex flex-col">
-                        <div className="flex-1">
-                          <h3 className="font-medium mb-1">My Portfolio</h3>
-                          <p className="text-sm text-gray-500 mb-3">Published • 3 projects</p>
-                          <div className="h-32 bg-gray-100 rounded mb-3 flex items-center justify-center text-gray-400">
-                            Portfolio Preview
-                          </div>
-                        </div>
-                        <div className="flex space-x-2 mt-2">
-                          <Button className="flex-1 bg-jobathon-600 hover:bg-jobathon-700">
-                            Edit
-                          </Button>
-                          <Button variant="outline" className="flex-1">
-                            View
-                          </Button>
-                        </div>
+                    {/* Portfolio List Table */}
+                    {portfolioListLoading ? (
+                      <div className="py-8 text-center">Loading portfolios...</div>
+                    ) : portfolioListError ? (
+                      <div className="py-8 text-center text-red-500">{portfolioListError}</div>
+                    ) : portfolioList.length === 0 ? (
+                      <div className="py-8 text-center text-gray-500">
+                        No portfolios found. Create your first portfolio!
                       </div>
-
-                      <div className="border border-dashed border-gray-200 rounded-lg p-4 flex items-center justify-center">
-                        <div className="text-center">
-                          <div className="h-12 w-12 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-3">
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="24"
-                              height="24"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              className="text-gray-500"
-                            >
-                              <path d="M12 5v14M5 12h14"></path>
-                            </svg>
-                          </div>
-                          <h3 className="font-medium mb-1">Add Project</h3>
-                          <p className="text-sm text-gray-500">Showcase your best work</p>
-                        </div>
+                    ) : (
+                      <div className="overflow-x-auto mb-6">
+                        <table className="min-w-full border text-sm">
+                          <thead>
+                            <tr className="bg-gray-100">
+                              <th className="px-4 py-2 border">Title</th>
+                              <th className="px-4 py-2 border">Description</th>
+                              <th className="px-4 py-2 border">Status</th>
+                              <th className="px-4 py-2 border">Created At</th>
+                              <th className="px-4 py-2 border">Updated At</th>
+                              <th className="px-4 py-2 border">Action</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {portfolioList
+                              .filter((portfolio) => portfolio.is_public)
+                              .map((portfolio) => (
+                                <tr key={portfolio.portfolio_id} className="border-b">
+                                  <td className="px-4 py-2 border">{portfolio.title}</td>
+                                  <td className="px-4 py-2 border">
+                                    {portfolio.description || 'No description'}
+                                  </td>
+                                  <td className="px-4 py-2 border">
+                                    <span className="px-2 py-1 rounded-full text-xs bg-green-100 text-green-800">
+                                      Published
+                                    </span>
+                                  </td>
+                                  <td className="px-4 py-2 border">
+                                    {new Date(portfolio.created_at).toLocaleString()}
+                                  </td>
+                                  <td className="px-4 py-2 border">
+                                    {new Date(portfolio.updated_at).toLocaleString()}
+                                  </td>
+                                  <td className="px-4 py-2 border">
+                                    <div className="flex space-x-2">
+                                      <Link
+                                        to={`/portfolio/builder/${portfolio.portfolio_id}`}
+                                        className="flex-1"
+                                      >
+                                        <Button
+                                          size="sm"
+                                          className="w-full bg-jobathon-600 hover:bg-jobathon-700"
+                                        >
+                                          Edit
+                                        </Button>
+                                      </Link>
+                                      {/* <Link to="/portfolio" className="flex-1">
+            <Button size="sm" variant="outline" className="w-full">
+              View
+            </Button>
+          </Link> */}
+                                      <Button
+                                        size="sm"
+                                        variant="destructive"
+                                        onClick={() => handleDeletePortfolio(portfolio)}
+                                      >
+                                        <Trash2 size={16} />
+                                      </Button>
+                                    </div>
+                                  </td>
+                                </tr>
+                              ))}
+                          </tbody>
+                        </table>
                       </div>
-                    </div>
+                    )}
 
-                    <Button className="w-full">Create New Portfolio</Button>
+                    {/* Create New Portfolio Button */}
+                    <Link to="/portfolio" className="w-full">
+                      <Button className="w-full">Create New Portfolio</Button>
+                    </Link>
                   </CardContent>
                 </Card>
               </TabsContent>
@@ -967,6 +1113,26 @@ const Dashboard = () => {
             <AlertDialogCancel onClick={handleCancelDelete}>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={handleConfirmDelete} disabled={isDeleting}>
               {isDeleting ? 'Deleting...' : 'Delete'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={showDeletePortfolioDialog} onOpenChange={setShowDeletePortfolioDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete your portfolio.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={handleCancelDeletePortfolio}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmDeletePortfolio}
+              disabled={isDeletingPortfolio}
+            >
+              {isDeletingPortfolio ? 'Deleting...' : 'Delete'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
