@@ -8,6 +8,7 @@ import {
   Search,
   Layout,
 } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -145,6 +146,7 @@ const CVAnalyzer = () => {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [analysisProgress, setAnalysisProgress] = useState(0);
   const [analysisDone, setAnalysisDone] = useState(false);
+  const { currentUser } = useAuth();
 
   // Dummy upload progress simulation (fast)
   const simulateUpload = (cb) => {
@@ -169,7 +171,7 @@ const CVAnalyzer = () => {
     setAnalysisProgress(0);
     setAnalysisDone(false);
     let progress = 0;
-    const interval = setInterval(() => {
+    let interval = setInterval(() => {
       if (progress < 95) {
         progress += 5;
         setAnalysisProgress(progress);
@@ -182,53 +184,29 @@ const CVAnalyzer = () => {
       const formData = new FormData();
       formData.append('file', file);
 
-      // Simulate API call - replace with actual API call
-      setTimeout(() => {
-        // Mock data for demonstration
-        const mockData = {
-          overall_assessment:
-            "The resume demonstrates a strong foundation in software engineering and a promising skillset, particularly in backend development, AI/ML, and full-stack development. The candidate showcases impactful projects and internships, highlighting quantifiable achievements. However, some areas could be improved to better showcase the candidate's potential.",
-          skills: [
-            'Python',
-            'Java',
-            'JavaScript',
-            'React',
-            'Node.js',
-            'MongoDB',
-            'AWS',
-            'Machine Learning',
-          ],
-          missing_skills: ['Docker', 'Kubernetes', 'CI/CD', 'Testing Frameworks'],
-          experience_summary:
-            'The candidate has held multiple internships and a co-founder role, demonstrating experience in full-stack development, AI integration, database design, and cloud deployment.',
-          education_summary:
-            'The candidate is pursuing a Bachelor of Science in Computer Science from the Georgia Institute of Technology with an expected graduation date of May 2026.',
-          strengths: [
-            'Strong programming skills',
-            'Full-stack development experience',
-            'AI/ML project implementation',
-          ],
-          weaknesses: [
-            'Limited cloud experience',
-            'Missing testing methodologies',
-            'Could improve action verbs',
-          ],
-          recommended_courses: [
-            'Add more quantifiable achievements',
-            'Highlight testing frameworks',
-            'Expand project descriptions',
-          ],
-          resume_score: 85,
-          ats_score: 90,
-          keyword_match_score: 64,
-          formatting_score: 100,
-        };
+      let idToken = '';
+      if (currentUser) {
+        idToken = await currentUser.getIdToken();
+      }
 
-        setAnalysisResult(mockData);
-        setAnalysisDone(true);
-        setAnalysisProgress(100);
-        setIsAnalyzing(false);
-      }, 2000);
+      fetch(`${API_BASE_URL}/api/v1/ai/analyze`, {
+        method: 'POST',
+        headers: idToken ? { Authorization: `Bearer ${idToken}` } : undefined,
+        body: formData,
+      })
+        .then(async (res) => {
+          const data = await res.json();
+          setAnalysisResult(data);
+          setAnalysisDone(true);
+          setAnalysisProgress(100);
+          setIsAnalyzing(false);
+        })
+        .catch(() => {
+          setAnalysisResult({ error: 'Failed to analyze CV.' });
+          setAnalysisDone(true);
+          setAnalysisProgress(100);
+          setIsAnalyzing(false);
+        });
     } catch (err) {
       setAnalysisResult({ error: 'Failed to analyze CV.' });
       setAnalysisDone(true);
