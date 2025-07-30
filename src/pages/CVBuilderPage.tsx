@@ -748,25 +748,7 @@ export const CVBuilderPage = () => {
         <DialogContent className="max-w-5xl h-[80vh] overflow-auto">
           <DialogHeader>
             <DialogTitle>CV Preview</DialogTitle>
-            <div className="flex items-center gap-4 mt-2">
-              <label htmlFor="preview-template" className="font-medium text-sm">
-                Template:
-              </label>
-              <select
-                id="preview-template"
-                className="border rounded px-2 py-1 text-sm"
-                value={previewTemplate !== null ? previewTemplate : cvData.template || 1}
-                onChange={async (e) => {
-                  const val = parseInt(e.target.value, 10);
-                  setPreviewTemplate(val);
-                  await handlePreview(val);
-                }}
-              >
-                <option value={1}>Basic</option>
-                <option value={2}>Classic</option>
-              </select>
-              <span className="text-xs text-gray-400">(Temporary preview only)</span>
-            </div>
+
             <DialogClose asChild>
               <Button variant="outline" className="absolute right-4 top-4">
                 Close
