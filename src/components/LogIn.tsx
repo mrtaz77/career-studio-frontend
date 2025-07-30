@@ -5,22 +5,10 @@ import { useState, useRef } from 'react';
 
 import { useNavigate } from 'react-router-dom';
 
-// import {
-//   createUserWithEmailAndPassword,
-//   signInWithEmailAndPassword,
-// } from "firebase/auth"
-//import useToggleSignIn from "../utils/useToggleSignIn"
-//import { FacebookAuthProvider, signInWithPopup } from "firebase/auth"
-//import { provider } from "../utils/firebase"
-//import { updateProfile } from "firebase/auth"
-//import { useDispatch } from "react-redux"
-//import { addUser } from "../utils/authSlice"
-//import Footer from "./Footer"
 const LogIn = () => {
   //const navigate = useNavigate()
   const [isSignIn, setIsSignIn] = useState(true);
   const [errorMessage, setErrorMessage] = useState(null);
-  //const [emptyFieldMessage, setEmptyFieldMessage] = useState("")
 
   const email = useRef(null);
   const password = useRef(null);
@@ -33,117 +21,6 @@ const LogIn = () => {
     setIsSignIn(!isSignIn);
   };
 
-  // const handleFacebookClick = () => {
-  //   signInWithPopup(auth, provider)
-  //     .then((result) => {
-  //       // The signed-in user info.
-  //       const user = result.user
-
-  //       // This gives you a Facebook Access Token. You can use it to access the Facebook API.
-  //       const credential = FacebookAuthProvider.credentialFromResult(result)
-  //       const accessToken = credential.accessToken
-
-  //       // IdP data available using getAdditionalUserInfo(result)
-  //       // ...
-  //     })
-  //     .catch((error) => {
-  //       // Handle Errors here.
-  //       const errorCode = error.code
-  //       const errorMessage = error.message
-  //       // The email of the user's account used.
-  //       const email = error.customData.email
-  //       // The AuthCredential type that was used.
-  //       const credential = FacebookAuthProvider.credentialFromError(error)
-
-  //       // ...
-  //     })
-  // }
-
-  // const handleButtonClick = () => {
-  //   const message = validate(email.current.value, password.current.value)
-  //   // if (
-  //   //   email.current.value === "" ||
-  //   //   password.current.value === "" ||
-  //   //   name.current.value === ""
-  //   // )
-  //   //setEmptyFieldMessage("Field is empty")
-  //   setErrorMessage(message)
-  //   // console.log(message)
-  //   // console.log("email: ", email, " password: ", password, "name",name)
-  //   if (!isSignIn) {
-  //     createUserWithEmailAndPassword(
-  //       auth,
-  //       email.current.value,
-  //       password.current.value
-  //     )
-  //       .then((userCredential) => {
-  //         // Signed up
-  //         const user = userCredential.user
-  //         //console.log("userUPup: ",user," auth.currentUser: ",auth.currentUser)
-  //         //console.log("name : ",name.current.value)
-  //         if (auth.currentUser)
-  //           updateProfile(auth.currentUser, {
-  //             displayName: name.current.value,
-  //             photoURL: PROFILE_URL,
-  //           })
-  //             .then(() => {
-  //               // Profile updated!
-  //               //console.log("userUP: ",user)
-  //               const { uid, email, displayName, photoURL } = auth.currentUser
-  //               dispatch(
-  //                 addUser({
-  //                   uid: uid,
-  //                   email: email,
-  //                   displayName: displayName,
-  //                   photoURL: photoURL,
-  //                 })
-  //               )
-
-  //               //console.log("update profile!")
-  //               // ...
-  //             })
-  //             .catch((error) => {
-  //               // An error occurred
-  //               // ...
-  //             })
-  //         //   navigate("/Browse")
-
-  //         // dispatch(
-  //         // addItem(user)
-  //         // )
-  //         // console.log(user)
-  //         // ...
-  //       })
-  //       .catch((error) => {
-  //         const errorCode = error.code
-  //         const errorMessage = error.message
-  //         //console.log(errorCode+errorMessage)
-  //         setErrorMessage(errorCode + errorMessage)
-  //         // ..
-  //       })
-  //   } else {
-  //     signInWithEmailAndPassword(
-  //       auth,
-  //       email.current.value,
-  //       password.current.value
-  //     )
-  //       .then((userCredential) => {
-  //         // Signed in
-  //         const user = userCredential.user
-
-  //         //  navigate("/Browse")
-
-  //         // console.log(user)
-  //         // ...
-  //       })
-  //       .catch((error) => {
-  //         const errorCode = error.code
-  //         const errorMessage = error.message
-  //         setErrorMessage(errorCode + errorMessage)
-  //         // console.log(errorCode + errorMessage)
-  //       })
-  //   }
-  // }
   return (
     <div>
       {/* <Header /> */}
