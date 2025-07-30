@@ -3,20 +3,17 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
-import { FileText, Briefcase, User, LogOut, Trash2, Search } from 'lucide-react';
+import { FileText, Briefcase, User, LogOut, Trash2, Search, BarChart2 } from 'lucide-react';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '../lib/firebase';
 import { addUser, removeUser } from '../utils/authSlice';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { RootState } from '../utils/store';
-import store from '../utils/store'; // Adjust the import path as necessary
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAuth } from '@/context/AuthContext';
-
-import { Download, Edit } from 'lucide-react';
 
 import { ProfileCompletionDialog } from '@/components/ProfileCompletionDialog';
 import { UserProfileView } from '@/components/UserProfileView';
@@ -31,9 +28,9 @@ import {
 import { Award, School } from 'lucide-react';
 import { CertificatesView } from '@/components/CertificatesView';
 import { EducationView } from '@/components/EducationView';
+import CVAnalyzer from '@/components/CVAnalyzer';
 import {
   Dialog,
-  DialogTrigger,
   DialogContent,
   DialogHeader,
   DialogTitle,
@@ -77,6 +74,9 @@ const Dashboard = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredCvList, setFilteredCvList] = useState([]);
+
+  // Add a new state for file upload
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
 
   const handleOpenCreateCVDialog = () => setShowCreateCVDialog(true);
   const handleCloseCreateCVDialog = () => setShowCreateCVDialog(false);
@@ -454,6 +454,13 @@ const Dashboard = () => {
     setSearchQuery('');
   };
 
+  // Handler for file input change
+  const handleFileChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      setUploadedFile(e.target.files[0]);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Top Navigation */}
@@ -552,6 +559,16 @@ const Dashboard = () => {
                   <Award size={18} className="mr-2" />
                   Certificates
                 </Button>
+                {/* --- New CV Analyzer Section --- */}
+                <Button
+                  variant={activeTab === 'analyzer' ? 'default' : 'ghost'}
+                  className={`w-full justify-start mb-1 ${activeTab === 'analyzer' ? 'bg-jobathon-600' : ''}`}
+                  onClick={() => setActiveTab('analyzer')}
+                >
+                  <BarChart2 size={18} className="mr-2" />
+                  CV Analyzer
+                </Button>
+                {/* --- End New Section --- */}
                 <Button
                   variant={activeTab === 'others' ? 'default' : 'ghost'}
                   className={`w-full justify-start mb-1 ${activeTab === 'others' ? 'bg-jobathon-600' : ''}`}
@@ -786,6 +803,10 @@ const Dashboard = () => {
               </TabsContent>
               <TabsContent value="education">
                 <EducationView />
+              </TabsContent>
+
+              <TabsContent value="analyzer">
+                <CVAnalyzer />
               </TabsContent>
 
               <TabsContent value="others">
